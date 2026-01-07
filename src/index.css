@@ -1,0 +1,40 @@
+/* 1. Import the font from Google Fonts */
+@import url("https://fonts.googleapis.com/css2?family=Inter:wght@100..900&display=swap");
+/* 2. Import Tailwind */
+@import "tailwindcss";
+
+/* 3. Configure the theme */
+@theme {
+  --font-sans: "Inter", sans-serif;
+  --font-display: "Inter", sans-serif;
+  --color-primary: #4f46e5;
+  --color-background-light: #fafafa;
+  --color-background-dark: #111111;
+  --color-surface-light: #ffffff;
+  --color-surface-dark: #1a1a1a;
+  --color-text-main-light: #171717;
+  --color-text-main-dark: #ededed;
+  --color-text-muted-light: #737373;
+  --color-text-muted-dark: #a3a3a3;
+  --color-accent-purple: #8b5cf6;
+  --color-accent-green: #10b981;
+  --color-accent-yellow: #fbbf24;
+  --color-accent-orange: #f97316;
+}
+@layer base {
+  body {
+    @apply font-sans antialiased text-text-main-light bg-background-light;
+  }
+}
+/* Custom Scrollbar */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: #d4d4d4;
+  border-radius: 3px;
+}

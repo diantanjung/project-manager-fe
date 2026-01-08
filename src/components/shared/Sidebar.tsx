@@ -1,5 +1,4 @@
 // src/components/Sidebar.tsx
-import { NavLink } from "react-router";
 import {
   MdDonutLarge,
   MdDashboard,
@@ -8,6 +7,8 @@ import {
   MdPieChart,
   MdAdd,
 } from "react-icons/md";
+import ProjectItem from "./ProjectItem";
+import NavItem from "./NavItem";
 export function Sidebar() {
   return (
     <aside className="w-[260px] h-full flex flex-col bg-surface-light border-r border-gray-100 shrink-0 z-40">
@@ -81,61 +82,5 @@ export function Sidebar() {
     </aside>
   );
 }
-function NavItem({
-  to,
-  icon,
-  label,
-  badge,
-}: {
-  to: string;
-  icon: React.ReactNode;
-  label: string;
-  badge?: string;
-}) {
-  return (
-    <NavLink
-      to={to}
-      className={({ isActive }) =>
-        `flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors ${
-          isActive
-            ? "bg-primary/10 text-primary"
-            : "text-text-muted-light hover:text-text-main-light hover:bg-gray-50"
-        }`
-      }
-    >
-      {icon}
-      {label}
-      {badge && (
-        <span className="ml-auto bg-gray-100 text-xs px-2 py-0.5 rounded-full text-black">
-          {badge}
-        </span>
-      )}
-    </NavLink>
-  );
-}
-function ProjectItem({
-  color,
-  label,
-  count,
-}: {
-  color: string;
-  label: string;
-  count?: string;
-}) {
-  return (
-    <li>
-      <a
-        href="#"
-        className="flex items-center gap-3 px-3 py-2 text-text-muted-light hover:text-text-main-light hover:bg-gray-50 rounded-lg text-sm transition-colors group"
-      >
-        <span className={`w-2.5 h-2.5 rounded-full ${color} shadow-sm`}></span>
-        <span className="flex-1 truncate">{label}</span>
-        {count && (
-          <span className="opacity-0 group-hover:opacity-100 transition-opacity bg-primary/10 text-primary text-[10px] font-bold px-1.5 py-0.5 rounded">
-            {count}
-          </span>
-        )}
-      </a>
-    </li>
-  );
-}
+
+

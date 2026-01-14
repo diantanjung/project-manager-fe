@@ -30,8 +30,11 @@ export function Login() {
 
     try {
       if (email && password) {
-        const { user, token } = await authService.login({ email, password });
-        login(token, user);
+        const { user, accessToken, refreshToken } = await authService.login({
+          email,
+          password,
+        });
+        login(accessToken, refreshToken, user);
         navigate(from, { replace: true });
       }
     } catch (err) {

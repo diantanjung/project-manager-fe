@@ -1,4 +1,4 @@
-import { api } from "../lib/axios";
+import { api, setAccessToken } from "../lib/axios";
 import type {
   LoginCredentials,
   RegisterCredentials,
@@ -9,9 +9,8 @@ import type {
 export const authService = {
   async login(credentials: LoginCredentials): Promise<LoginResponse> {
     const { data } = await api.post<LoginResponse>("/auth/login", credentials);
-
-    localStorage.setItem("accessToken", data.accessToken);
-    localStorage.setItem("refreshToken", data.refreshToken);
+    // Note: Refresh token is now set as HttpOnly cookie by the backend
+    // Access token is stored in memory by the caller (authStore)
     return data;
   },
 
@@ -23,30 +22,21 @@ export const authService = {
     return data;
   },
 
-  async refreshAccessToken(): Promise<LoginResponse> {
-    const refreshToken = localStorage.getItem("refreshToken");
-    if (!refreshToken) {
-      throw new Error("Refresh token not found");
-    }
-    const { data } = await api.post<LoginResponse>("/auth/refresh", {
-      refreshToken,
-    });
-    localStorage.setItem("accessToken", data.accessToken);
-    // Only update refresh token if backend rotates it (returns new one)
-    if (data.refreshToken) {
-      localStorage.setItem("refreshToken", data.refreshToken);
-    }
+  async refreshAccessToken(): Promise<{ accessToken: string }> {
+    // Refresh token is sent automatically via HttpOnly cookie
+    const { data } = await api.post<{ accessToken: string }>(
+      "/auth/refresh",
+      {}
+    );
+    // Store new access token in memory
+    setAccessToken(data.accessToken);
     return data;
   },
 
   async logout(): Promise<void> {
-    const refreshToken = localStorage.getItem("refreshToken");
-    if (!refreshToken) {
-      throw new Error("Refresh token not found");
-    }
-    await api.post("/auth/logout", { refreshToken });
-
-    localStorage.removeItem("accessToken");
-    localStorage.removeItem("refreshToken");
+    // Backend will read refresh token from cookie and clear it
+    await api.post("/auth/logout", {});
+    // Clear in-memory access token
+    setAccessToken(null);
   },
 };

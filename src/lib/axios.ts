@@ -1,16 +1,26 @@
 import axios from "axios";
 
+// In-memory access token storage (secure - not accessible via XSS)
+let accessToken: string | null = null;
+
+export const setAccessToken = (token: string | null) => {
+  accessToken = token;
+};
+
+export const getAccessToken = () => accessToken;
+
 export const api = axios.create({
   baseURL: import.meta.env.VITE_API_URL || "http://localhost:3000/api",
   headers: {
     "Content-Type": "application/json",
   },
+  withCredentials: true, // Send HttpOnly cookies with requests
 });
 
+// Request interceptor - attach access token from memory
 api.interceptors.request.use((config) => {
-  const token = localStorage.getItem("accessToken");
-  if (token) {
-    config.headers.Authorization = `Bearer ${token}`;
+  if (accessToken) {
+    config.headers.Authorization = `Bearer ${accessToken}`;
   }
   return config;
 });
@@ -55,34 +65,29 @@ api.interceptors.response.use(
       isRefreshing = true;
 
       try {
-        const refreshToken = localStorage.getItem("refreshToken");
-
-        if (!refreshToken) {
-          throw new Error("No refresh token available");
-        }
-
+        // Refresh token is sent automatically via HttpOnly cookie
         const { data } = await axios.post(
           `${api.defaults.baseURL}/auth/refresh`,
-          { refreshToken }
+          {}, // Empty body - refresh token is in cookie
+          { withCredentials: true }
         );
 
-        const { accessToken } = data;
+        const newAccessToken = data.accessToken;
 
-        localStorage.setItem("accessToken", accessToken);
-        // If your backend rotates refresh tokens, update it here too:
-        if (data.refreshToken) {
-          localStorage.setItem("refreshToken", data.refreshToken);
-        }
+        // Store new access token in memory
+        accessToken = newAccessToken;
 
-        api.defaults.headers.common["Authorization"] = `Bearer ${accessToken}`;
-        processQueue(null, accessToken);
+        api.defaults.headers.common[
+          "Authorization"
+        ] = `Bearer ${newAccessToken}`;
+        processQueue(null, newAccessToken);
 
-        originalRequest.headers.Authorization = `Bearer ${accessToken}`;
+        originalRequest.headers.Authorization = `Bearer ${newAccessToken}`;
         return api(originalRequest);
       } catch (refreshError) {
         processQueue(refreshError, null);
-        localStorage.removeItem("accessToken");
-        localStorage.removeItem("refreshToken");
+        // Clear in-memory token
+        accessToken = null;
         localStorage.removeItem("user");
         window.location.href = "/login";
         return Promise.reject(refreshError);

@@ -18,7 +18,7 @@ export interface RegisterCredentials {
 export interface LoginResponse {
   user: User;
   accessToken: string;
-  refreshToken: string;
+  refreshToken?: string; // Optional - now sent via HttpOnly cookie
 }
 
 export type RegisterResponse = User;

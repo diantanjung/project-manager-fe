@@ -6,7 +6,9 @@ import { Home } from "./pages/Home";
 import { Dashboard } from "./pages/Dashboard";
 import { Login } from "./pages/Login";
 import { Register } from "./pages/Register";
+import { Profile } from "./pages/Profile";
 import { ProtectedRoute } from "./components/ProtectedRoute";
+import { Users } from "./pages/admin/Users";
 
 function App() {
   // Define the routes
@@ -37,6 +39,21 @@ function App() {
               // Renders on "/dashboard" inside the Layout
               path: "dashboard",
               element: <Dashboard />,
+            },
+            {
+              path: "profile",
+              element: <Profile />,
+            },
+            {
+              // Admin Users Route
+              path: "admin/users",
+              element: <ProtectedRoute allowedRoles={["admin"]} />,
+              children: [
+                {
+                  index: true,
+                  element: <Users />,
+                },
+              ],
             },
           ],
         },

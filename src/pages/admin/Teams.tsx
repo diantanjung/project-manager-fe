@@ -1,26 +1,26 @@
 import { useState, useEffect } from "react";
 import { useSearchParams } from "react-router";
-import { useUserStore } from "../../stores/userStore";
-import { UserList } from "../../components/users/UserList";
-import { UserDialog } from "../../components/users/UserDialog";
-import type { User } from "../../types/auth";
-import type { CreateUserData, UpdateUserData } from "../../services/user.service";
-import { MdAdd, MdSearch, MdFilterList, MdChevronLeft, MdChevronRight } from "react-icons/md";
+import { useTeamStore } from "../../stores/teamStore";
+import { TeamList } from "../../components/teams/TeamList";
+import { TeamDialog } from "../../components/teams/TeamDialog";
+import type { Team, CreateTeamData, UpdateTeamData } from "../../types/team";
+import { MdAdd, MdSearch, MdChevronLeft, MdChevronRight } from "react-icons/md";
+import { TeamMembersDialog } from "../../components/teams/TeamMembersDialog";
 
-export function Users() {
+export function Teams() {
     const {
-        users,
+        teams,
         isLoading,
         error,
         page,
         totalPages,
         filters,
         setParams,
-        createUser,
-        updateUser,
-        deleteUser,
+        createTeam,
+        updateTeam,
+        deleteTeam,
         setError,
-    } = useUserStore();
+    } = useTeamStore();
 
     const [searchParams, setSearchParams] = useSearchParams();
 
@@ -28,7 +28,6 @@ export function Users() {
     useEffect(() => {
         const pageFromUrl = Number(searchParams.get("page")) || 1;
         const searchFromUrl = searchParams.get("search") || undefined;
-        const roleFromUrl = searchParams.get("role") || undefined;
         const sortByFromUrl = searchParams.get("sortBy") || undefined;
         const orderFromUrl = (searchParams.get("order") as "asc" | "desc") || undefined;
 
@@ -36,7 +35,6 @@ export function Users() {
             page: pageFromUrl,
             filters: {
                 search: searchFromUrl,
-                role: roleFromUrl,
                 sortBy: sortByFromUrl,
                 order: orderFromUrl,
             },
@@ -54,7 +52,7 @@ export function Users() {
                 }
             });
             // Reset page if filter changes (unless page is explicitly updated)
-            if (!newParams.page && (newParams.search !== undefined || newParams.role !== undefined)) {
+            if (!newParams.page && newParams.search !== undefined) {
                 next.set("page", "1");
             }
             return next;
@@ -62,31 +60,39 @@ export function Users() {
     };
 
     const [isDialogOpen, setIsDialogOpen] = useState(false);
-    const [editingUser, setEditingUser] = useState<User | null>(null);
+    const [editingTeam, setEditingTeam] = useState<Team | null>(null);
+
+    const [isMembersDialogOpen, setIsMembersDialogOpen] = useState(false);
+    const [selectedTeamForMembers, setSelectedTeamForMembers] = useState<Team | null>(null);
 
     const handleCreate = () => {
         setError(null);
-        setEditingUser(null);
+        setEditingTeam(null);
         setIsDialogOpen(true);
     };
 
-    const handleEdit = (user: User) => {
+    const handleEdit = (team: Team) => {
         setError(null);
-        setEditingUser(user);
+        setEditingTeam(team);
         setIsDialogOpen(true);
+    };
+
+    const handleManageMembers = (team: Team) => {
+        setSelectedTeamForMembers(team);
+        setIsMembersDialogOpen(true);
     };
 
     const handleDelete = async (id: number) => {
-        if (window.confirm("Are you sure you want to delete this user?")) {
-            await deleteUser(id);
+        if (window.confirm("Are you sure you want to delete this team?")) {
+            await deleteTeam(id);
         }
     };
 
-    const handleSubmit = async (data: CreateUserData | UpdateUserData) => {
-        if (editingUser) {
-            await updateUser(editingUser.id, data);
+    const handleSubmit = async (data: CreateTeamData | UpdateTeamData) => {
+        if (editingTeam) {
+            await updateTeam(editingTeam.id, data);
         } else {
-            await createUser(data as CreateUserData);
+            await createTeam(data as CreateTeamData);
         }
     };
 
@@ -95,10 +101,10 @@ export function Users() {
             <div className="flex flex-col gap-6 mb-8">
                 <div>
                     <h1 className="text-2xl font-bold text-text-main-light">
-                        User Management
+                        Team Management
                     </h1>
                     <p className="text-text-muted-light mt-1">
-                        Manage users, roles, and permissions
+                        Manage teams and their descriptions
                     </p>
                 </div>
 
@@ -107,32 +113,18 @@ export function Users() {
                         <MdSearch className="absolute left-3 top-1/2 -translate-y-1/2 text-text-muted-light text-xl" />
                         <input
                             type="text"
-                            placeholder="Search users by name or email..."
+                            placeholder="Search teams by name..."
                             className="w-full pl-10 pr-4 py-2 bg-white border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all"
                             value={filters.search || ""}
                             onChange={(e) => updateUrlParams({ search: e.target.value })}
                         />
-                    </div>
-                    <div className="relative w-full sm:w-48">
-                        <MdFilterList className="absolute left-3 top-1/2 -translate-y-1/2 text-text-muted-light text-xl" />
-                        <select
-                            className="w-full pl-10 pr-4 py-2 bg-white border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary appearance-none transition-all"
-                            value={filters.role || ""}
-                            onChange={(e) => updateUrlParams({ role: e.target.value })}
-                        >
-                            <option value="">All Roles</option>
-                            <option value="admin">Admin</option>
-                            <option value="productOwner">Product Owner</option>
-                            <option value="projectManager">Project Manager</option>
-                            <option value="teamMember">Team Member</option>
-                        </select>
                     </div>
                     <button
                         onClick={handleCreate}
                         className="flex items-center gap-2 px-4 py-2 bg-primary hover:bg-primary-dark text-white rounded-xl transition-all shadow-sm shadow-primary/20 whitespace-nowrap"
                     >
                         <MdAdd className="text-lg" />
-                        <span className="font-semibold">Add User</span>
+                        <span className="font-semibold">Add Team</span>
                     </button>
                 </div>
             </div>
@@ -143,11 +135,12 @@ export function Users() {
                 </div>
             )}
 
-            <UserList
-                users={users}
+            <TeamList
+                teams={teams}
                 isLoading={isLoading}
                 onEdit={handleEdit}
                 onDelete={handleDelete}
+                onManageMembers={handleManageMembers}
                 sortBy={filters.sortBy}
                 order={filters.order}
                 onSort={(field) => {
@@ -179,12 +172,18 @@ export function Users() {
                 </div>
             )}
 
-            <UserDialog
+            <TeamDialog
                 isOpen={isDialogOpen}
                 onClose={() => setIsDialogOpen(false)}
                 onSubmit={handleSubmit}
-                user={editingUser}
+                team={editingTeam}
                 error={error}
+            />
+
+            <TeamMembersDialog
+                isOpen={isMembersDialogOpen}
+                onClose={() => setIsMembersDialogOpen(false)}
+                team={selectedTeamForMembers}
             />
         </div>
     );

@@ -100,11 +100,10 @@
 - [x] Register Page
 - [ ] User Profile Settings
 
-### Dashboard & Projects
-- [ ] Dashboard Overview
-- [ ] Project List View
-- [ ] Create Project Modal
-- [ ] Project Details Page
+### Projects
+- [x] Project List View
+- [x] Create Project Modal
+- [x] Project Details Page
 
 ### Tasks
 - [ ] Task Board (Kanban view)

@@ -1,17 +1,18 @@
-import { createBrowserRouter, RouterProvider } from "react-router";
+import { createBrowserRouter, RouterProvider, Navigate } from "react-router";
 import "./index.css";
 // Import your components
 import { MainLayout } from "./layouts/MainLayout";
-import { Home } from "./pages/Home";
 import { Dashboard } from "./pages/Dashboard";
 import { Login } from "./pages/Login";
 import { Register } from "./pages/Register";
 import { Profile } from "./pages/Profile";
 import { ProtectedRoute } from "./components/ProtectedRoute";
 import { Users } from "./pages/admin/Users";
+import { Teams } from "./pages/admin/Teams";
+
+import { ProjectBoard } from "./pages/ProjectBoard";
 
 function App() {
-  // Define the routes
   const router = createBrowserRouter([
     {
       path: "/login",
@@ -22,30 +23,28 @@ function App() {
       element: <Register />,
     },
     {
-      // Wrap protected routes with ProtectedRoute
-      path: "/",
       element: <ProtectedRoute />,
       children: [
         {
-          // The Parent Route (Layout)
           element: <MainLayout />,
           children: [
             {
-              // Index route renders on "/"
-              index: true,
-              element: <Home />,
+              path: "/",
+              element: <Navigate to="/dashboard" replace />,
             },
             {
-              // Renders on "/dashboard" inside the Layout
               path: "dashboard",
               element: <Dashboard />,
+            },
+            {
+              path: "project/:projectId",
+              element: <ProjectBoard />,
             },
             {
               path: "profile",
               element: <Profile />,
             },
             {
-              // Admin Users Route
               path: "admin/users",
               element: <ProtectedRoute allowedRoles={["admin"]} />,
               children: [
@@ -55,11 +54,22 @@ function App() {
                 },
               ],
             },
+            {
+              path: "admin/teams",
+              element: <ProtectedRoute allowedRoles={["admin"]} />,
+              children: [
+                {
+                  index: true,
+                  element: <Teams />,
+                },
+              ],
+            },
           ],
         },
       ],
     },
   ]);
+
   return <RouterProvider router={router} />;
 }
 

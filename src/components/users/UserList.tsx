@@ -4,7 +4,7 @@ import { MdEdit, MdDelete, MdArrowUpward, MdArrowDownward } from "react-icons/md
 interface UserListProps {
     users: User[];
     onEdit: (user: User) => void;
-    onDelete: (id: string) => void;
+    onDelete: (id: number) => void;
     isLoading: boolean;
     sortBy?: string;
     order?: "asc" | "desc";

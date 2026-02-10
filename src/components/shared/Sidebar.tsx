@@ -6,33 +6,32 @@ import {
   MdInbox,
   MdPieChart,
   MdAdd,
-  MdBugReport,
 } from "react-icons/md";
 import { useAuthStore } from "../../stores/authStore";
-import { api } from "../../lib/axios";
 import ProjectItem from "./ProjectItem";
 import NavItem from "./NavItem";
-
-const handleTestApi = async () => {
-  console.log("🔄 Making authenticated API request...");
-  try {
-    const response = await api.get("/users");
-    console.log("✅ API Response:", response.data);
-    alert("API call successful! Check console for details.");
-  } catch (error) {
-    console.error("❌ API Error:", error);
-    alert("API call failed! Check console for details.");
-  }
-};
 
 import { useState, useRef, useEffect } from "react";
 import { useNavigate } from "react-router";
 
+// ... imports
+import { ProjectDialog } from "../projects/ProjectDialog";
+import { useProjectStore } from "../../stores/projectStore";
+import type { CreateProjectData } from "../../types/project";
+
+// ... existing imports
+
 export function Sidebar() {
   const { user, logout } = useAuthStore();
+  const { projects, fetchProjects, createProject } = useProjectStore();
   const navigate = useNavigate();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const [isProjectDialogOpen, setIsProjectDialogOpen] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    fetchProjects();
+  }, [fetchProjects]);
 
   useEffect(() => {
     function handleClickOutside(event: MouseEvent) {
@@ -46,6 +45,24 @@ export function Sidebar() {
     };
   }, []);
 
+  const handleCreateProject = async (data: CreateProjectData) => {
+    try {
+      await createProject(data);
+      console.log("Project created successfully");
+      // Dialog close is handled by the Dialog component calling its own onClose logic or we pass a wrapper
+      // In this implementation ProjectDialog closes itself on submit success, but we passed a wrapper below.
+    } catch (error) {
+      console.error("Failed to create project", error);
+      throw error;
+    }
+  };
+
+  // Helper to assign random colors for now, or use a deterministic mapping
+  const getProjectColor = (id: number) => {
+    const colors = ["bg-accent-purple", "bg-accent-orange", "bg-accent-green", "bg-blue-400", "bg-pink-400", "bg-indigo-400"];
+    return colors[id % colors.length];
+  };
+
   return (
     <aside className="w-[260px] h-full flex flex-col bg-surface-light border-r border-gray-100 shrink-0 z-40">
       <div className="h-16 flex items-center px-6 border-b border-gray-50">
@@ -55,9 +72,9 @@ export function Sidebar() {
       <div className="flex-1 overflow-y-auto px-4 py-6 space-y-8">
         <nav className="space-y-1">
           <NavItem
-            to="/dashboard"
+            to="/"
             icon={<MdDashboard className="text-xl" />}
-            label="Home / Dashboard"
+            label="Home"
           />
           <NavItem
             to="/tasks"
@@ -76,38 +93,45 @@ export function Sidebar() {
             label="Reports"
           />
           {user?.role === "admin" && (
-            <NavItem
-              to="/admin/users"
-              icon={<MdDonutLarge className="text-xl" />}
-              label="Manage Users"
-            />
+            <>
+              <NavItem
+                to="/admin/users"
+                icon={<MdDonutLarge className="text-xl" />}
+                label="Manage Users"
+              />
+              <NavItem
+                to="/admin/teams"
+                icon={<MdDonutLarge className="text-xl" />}
+                label="Manage Teams"
+              />
+            </>
           )}
-          <button
-            onClick={handleTestApi}
-            className="flex items-center gap-3 px-3 py-2.5 w-full rounded-lg text-text-muted-light hover:bg-amber-50 hover:text-amber-600 transition-colors cursor-pointer"
-          >
-            <MdBugReport className="text-xl" />
-            <span className="font-medium text-sm">Test API (Refresh)</span>
-          </button>
         </nav>
         <div>
           <div className="flex items-center justify-between px-3 mb-2">
             <span className="text-xs font-semibold text-text-muted-light uppercase tracking-wider">
               Projects
             </span>
-            <button className="text-text-muted-light hover:text-primary transition-colors">
+            <button
+              onClick={() => setIsProjectDialogOpen(true)}
+              className="text-text-muted-light hover:text-primary transition-colors"
+            >
               <MdAdd className="text-lg" />
             </button>
           </div>
           <ul className="space-y-1">
-            <ProjectItem
-              color="bg-accent-purple"
-              label="Rebranding Campaign"
-              count="14"
-            />
-            <ProjectItem color="bg-accent-orange" label="Website Redesign" />
-            <ProjectItem color="bg-accent-green" label="Q4 Marketing" />
-            <ProjectItem color="bg-blue-400" label="Mobile App" />
+            {projects.map((project) => (
+              <ProjectItem
+                key={project.id}
+                color={getProjectColor(project.id)}
+                label={project.name}
+                to={`/project/${project.id}`}
+              // count="14" // Todo: Add task count to project
+              />
+            ))}
+            {projects.length === 0 && (
+              <li className="px-3 py-2 text-sm text-text-muted-light">No projects yet.</li>
+            )}
           </ul>
         </div>
       </div>
@@ -167,6 +191,12 @@ export function Sidebar() {
           </div>
         </div>
       </div>
+
+      <ProjectDialog
+        isOpen={isProjectDialogOpen}
+        onClose={() => setIsProjectDialogOpen(false)}
+        onSubmit={handleCreateProject}
+      />
     </aside>
   );
 }

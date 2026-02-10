@@ -45,12 +45,12 @@ export const userService = {
         return response.data;
     },
 
-    updateUser: async (id: string, data: UpdateUserData) => {
+    updateUser: async (id: number, data: UpdateUserData) => {
         const response = await api.patch<User>(`/users/${id}`, data);
         return response.data;
     },
 
-    deleteUser: async (id: string) => {
+    deleteUser: async (id: number) => {
         await api.delete(`/users/${id}`);
     },
 };

@@ -1,7 +1,8 @@
-import { useState, useEffect } from "react";
+import { useEffect } from "react";
 import type { User } from "../../types/auth";
 import type { CreateUserData, UpdateUserData } from "../../services/user.service";
 import { MdClose } from "react-icons/md";
+import { useForm, type SubmitHandler } from "react-hook-form";
 
 interface UserDialogProps {
     isOpen: boolean;
@@ -11,42 +12,54 @@ interface UserDialogProps {
     error?: string | null;
 }
 
+interface UserFormInputs {
+    name: string;
+    email: string;
+    password?: string;
+    role: User["role"];
+}
+
 export function UserDialog({ isOpen, onClose, onSubmit, user, error }: UserDialogProps) {
-    const [formData, setFormData] = useState<CreateUserData>({
-        name: "",
-        email: "",
-        password: "",
-        role: "teamMember",
+    const {
+        register,
+        handleSubmit,
+        reset,
+        formState: { isSubmitting, errors },
+    } = useForm<UserFormInputs>({
+        defaultValues: {
+            name: "",
+            email: "",
+            password: "",
+            role: "teamMember",
+        },
     });
-    const [isSubmitting, setIsSubmitting] = useState(false);
 
     useEffect(() => {
-        if (user) {
-            setFormData({
-                name: user.name,
-                email: user.email,
-                role: user.role,
-            });
-        } else {
-            setFormData({
-                name: "",
-                email: "",
-                password: "",
-                role: "teamMember",
-            });
+        if (isOpen) {
+            if (user) {
+                reset({
+                    name: user.name,
+                    email: user.email,
+                    role: user.role,
+                    password: "", // Password is not editable directly here usually, or optional in updates
+                });
+            } else {
+                reset({
+                    name: "",
+                    email: "",
+                    password: "",
+                    role: "teamMember",
+                });
+            }
         }
-    }, [user, isOpen]);
+    }, [user, isOpen, reset]);
 
-    const handleSubmit = async (e: React.FormEvent) => {
-        e.preventDefault();
-        setIsSubmitting(true);
+    const onFormSubmit: SubmitHandler<UserFormInputs> = async (data) => {
         try {
-            await onSubmit(formData);
+            await onSubmit(data);
             onClose();
         } catch {
-            // Error is handled by parent or hook
-        } finally {
-            setIsSubmitting(false);
+            // Error is handled by parent
         }
     };
 
@@ -73,21 +86,21 @@ export function UserDialog({ isOpen, onClose, onSubmit, user, error }: UserDialo
                     </div>
                 )}
 
-                <form onSubmit={handleSubmit} className="p-6 space-y-4">
+                <form onSubmit={handleSubmit(onFormSubmit)} className="p-6 space-y-4">
                     <div>
                         <label className="block text-sm font-medium text-text-main-light mb-1.5">
                             Full Name
                         </label>
                         <input
                             type="text"
-                            required
-                            value={formData.name}
-                            onChange={(e) =>
-                                setFormData({ ...formData, name: e.target.value })
-                            }
-                            className="w-full px-3 py-2 rounded-lg bg-gray-50 border border-gray-200 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all"
+                            {...register("name", { required: "Full Name is required" })}
+                            className={`w-full px-3 py-2 rounded-lg bg-gray-50 border focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all ${errors.name ? "border-red-500" : "border-gray-200"
+                                }`}
                             placeholder="e.g. Sarah Connor"
                         />
+                        {errors.name && (
+                            <p className="mt-1 text-xs text-red-500">{errors.name.message}</p>
+                        )}
                     </div>
 
                     <div>
@@ -96,14 +109,20 @@ export function UserDialog({ isOpen, onClose, onSubmit, user, error }: UserDialo
                         </label>
                         <input
                             type="email"
-                            required
-                            value={formData.email}
-                            onChange={(e) =>
-                                setFormData({ ...formData, email: e.target.value })
-                            }
-                            className="w-full px-3 py-2 rounded-lg bg-gray-50 border border-gray-200 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all"
+                            {...register("email", {
+                                required: "Email is required",
+                                pattern: {
+                                    value: /^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}$/i,
+                                    message: "Invalid email address",
+                                },
+                            })}
+                            className={`w-full px-3 py-2 rounded-lg bg-gray-50 border focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all ${errors.email ? "border-red-500" : "border-gray-200"
+                                }`}
                             placeholder="sarah@example.com"
                         />
+                        {errors.email && (
+                            <p className="mt-1 text-xs text-red-500">{errors.email.message}</p>
+                        )}
                     </div>
 
                     {!user && (
@@ -113,14 +132,16 @@ export function UserDialog({ isOpen, onClose, onSubmit, user, error }: UserDialo
                             </label>
                             <input
                                 type="password"
-                                required
-                                value={formData.password}
-                                onChange={(e) =>
-                                    setFormData({ ...formData, password: e.target.value })
-                                }
-                                className="w-full px-3 py-2 rounded-lg bg-gray-50 border border-gray-200 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all"
+                                {...register("password", { required: "Password is required" })}
+                                className={`w-full px-3 py-2 rounded-lg bg-gray-50 border focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all ${errors.password ? "border-red-500" : "border-gray-200"
+                                    }`}
                                 placeholder="••••••••"
                             />
+                            {errors.password && (
+                                <p className="mt-1 text-xs text-red-500">
+                                    {errors.password.message}
+                                </p>
+                            )}
                         </div>
                     )}
 
@@ -129,13 +150,7 @@ export function UserDialog({ isOpen, onClose, onSubmit, user, error }: UserDialo
                             Role
                         </label>
                         <select
-                            value={formData.role}
-                            onChange={(e) =>
-                                setFormData({
-                                    ...formData,
-                                    role: e.target.value as User["role"],
-                                })
-                            }
+                            {...register("role")}
                             className="w-full px-3 py-2 rounded-lg bg-gray-50 border border-gray-200 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all"
                         >
                             <option value="teamMember">Team Member</option>

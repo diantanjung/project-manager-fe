@@ -1,17 +1,24 @@
+import { NavLink } from "react-router";
+
 function ProjectItem({
   color,
   label,
   count,
+  to,
 }: {
   color: string;
   label: string;
   count?: string;
+  to: string;
 }) {
   return (
     <li>
-      <a
-        href="#"
-        className="flex items-center gap-3 px-3 py-2 text-text-muted-light hover:text-text-main-light hover:bg-gray-50 rounded-lg text-sm transition-colors group"
+      <NavLink
+        to={to}
+        className={({ isActive }) =>
+          `flex items-center gap-3 px-3 py-2 text-text-muted-light hover:text-text-main-light hover:bg-gray-50 rounded-lg text-sm transition-colors group ${isActive ? "bg-gray-50 text-text-main-light font-medium" : ""
+          }`
+        }
       >
         <span className={`w-2.5 h-2.5 rounded-full ${color} shadow-sm`}></span>
         <span className="flex-1 truncate">{label}</span>
@@ -20,7 +27,7 @@ function ProjectItem({
             {count}
           </span>
         )}
-      </a>
+      </NavLink>
     </li>
   );
 }

@@ -19,8 +19,8 @@ interface UserState {
     setPage: (page: number) => void;
     setParams: (params: { page?: number; filters?: UserQueryParams }) => void;
     createUser: (data: CreateUserData) => Promise<User | undefined>;
-    updateUser: (id: string, data: UpdateUserData) => Promise<User | undefined>;
-    deleteUser: (id: string) => Promise<void>;
+    updateUser: (id: number, data: UpdateUserData) => Promise<User | undefined>;
+    deleteUser: (id: number) => Promise<void>;
     setError: (error: string | null) => void;
     clearError: () => void;
 }

@@ -98,7 +98,7 @@
 ### Authentication & Users
 - [x] Login Page
 - [x] Register Page
-- [ ] User Profile Settings
+- [x] User Profile Settings
 
 ### Projects
 - [x] Project List View
@@ -106,11 +106,45 @@
 - [x] Project Details Page
 
 ### Tasks
-- [ ] Task Board (Kanban view)
-- [ ] Task List View
-- [ ] Task Details Modal (with Comments & Attachments)
-- [ ] Create/Edit Task Modal
+- [x] Task Board (Kanban view)
+- [x] Task List View
+- [x] Task Details Modal (with Comments & Attachments)
+- [x] Create/Edit Task Modal
 
 ### Teams
-- [ ] Team List View
-- [ ] Team Details & Member Management
+- [x] Team List View
+- [x] Team Details & Member Management
+
+---
+
+## Future MVP Enhancements
+
+### 1. Notifications System
+- [ ] In-App Alerts (assigned tasks, mentions, watched tasks)
+- [ ] Email Notifications (daily digests, instant alerts)
+
+### 2. Advanced Task Features
+- [ ] Subtasks & Epics
+- [ ] Activity History / Audit Log on Task Detail Page
+- [ ] Rich Text Editor for Descriptions & Comments (TipTap/Quill)
+- [ ] Time Tracking (log hours spent)
+
+### 3. Search and Filtering
+- [ ] Global Search across application (tasks, projects, users)
+- [ ] Advanced Board Filters (assignee, priority, tags, due dates)
+
+### 4. Dashboards & Analytics
+- [ ] Reporting (Charts for status distribution, user load)
+- [ ] Burndown Charts
+
+### 5. Third-Party Integrations
+- [ ] Slack/Discord Webhooks
+- [ ] GitHub/GitLab Integration (link PRs to task status)
+
+### 6. User Experience (UX) Enhancements
+- [ ] Drag-and-Drop vertical prioritization within Kanban columns
+- [ ] User Mentions (@username) in comments
+
+### 7. AI Integrations (Future)
+- [ ] **AI Task Breakdown**: Automatically generate subtasks/acceptance criteria from a brief feature description.
+- [ ] **AI Project Assistant**: A chat interface to ask questions like "What are the blockers for Project X?"

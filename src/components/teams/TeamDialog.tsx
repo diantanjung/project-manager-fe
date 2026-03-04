@@ -1,6 +1,5 @@
 import { useEffect } from "react";
 import { useForm, type SubmitHandler } from "react-hook-form";
-import { MdClose } from "react-icons/md";
 import type { Team, CreateTeamData, UpdateTeamData } from "../../types/team";
 
 interface TeamDialogProps {
@@ -52,18 +51,18 @@ export function TeamDialog({ isOpen, onClose, onSubmit, team, error }: TeamDialo
     if (!isOpen) return null;
 
     return (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
-            <div className="bg-white rounded-2xl w-full max-w-md shadow-2xl animate-in fade-in zoom-in duration-200">
+        <div
+            className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm"
+            onClick={onClose}
+        >
+            <div
+                className="bg-white rounded-2xl w-full max-w-md shadow-2xl animate-in fade-in zoom-in duration-200"
+                onClick={(e) => e.stopPropagation()}
+            >
                 <div className="flex items-center justify-between p-6 border-b border-gray-100">
                     <h2 className="text-xl font-bold text-text-main-light">
                         {team ? "Edit Team" : "Create New Team"}
                     </h2>
-                    <button
-                        onClick={onClose}
-                        className="p-1 text-text-muted-light hover:text-text-main-light hover:bg-gray-100 rounded-lg transition-colors"
-                    >
-                        <MdClose className="text-xl" />
-                    </button>
                 </div>
 
                 {error && (

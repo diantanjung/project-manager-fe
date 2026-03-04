@@ -5,6 +5,8 @@ export interface Comment {
     content: string;
     taskId: number;
     authorId: number;
+    authorName?: string;
+    authorAvatarUrl?: string;
     createdAt: string;
     updatedAt: string;
     author?: User; // Backend usually includes this

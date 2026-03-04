@@ -1,5 +1,6 @@
 import type { Task } from "../../types/task";
 import { MdFlag, MdAccessTime } from "react-icons/md";
+import { getFullAvatarUrl } from "../../utils/avatar";
 
 interface TaskCardProps {
     task: Task;
@@ -47,10 +48,20 @@ export function TaskCard({ task, onClick }: TaskCardProps) {
                     <MdAccessTime />
                     <span>{task.dueDate ? new Date(task.dueDate).toLocaleDateString() : 'No Due Date'}</span>
                 </div>
-                {/* Placeholder for assignee avatar */}
-                <div className="w-6 h-6 rounded-full bg-gray-200 flex items-center justify-center text-[10px] text-gray-600 font-bold">
-                    A
-                </div>
+                {task.assigneeAvatarUrl ? (
+                    <div className="w-6 h-6 rounded-full overflow-hidden shrink-0 shadow-sm border border-gray-100">
+                        <img
+                            src={getFullAvatarUrl(task.assigneeAvatarUrl)}
+                            alt={task.assigneeName || `User ${task.assigneeId}`}
+                            className="h-full w-full object-cover"
+                            title={task.assigneeName || `User ${task.assigneeId}`}
+                        />
+                    </div>
+                ) : (
+                    <div className="w-6 h-6 rounded-full bg-gradient-to-tr from-primary to-accent-purple flex items-center justify-center text-[10px] text-white font-bold shrink-0" title={task.assigneeName || `User ${task.assigneeId}`}>
+                        {(task.assigneeName ? task.assigneeName.charAt(0) : 'U').toUpperCase()}
+                    </div>
+                )}
             </div>
         </div>
     );

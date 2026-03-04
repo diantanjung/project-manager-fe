@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import Select from "react-select";
-import { MdClose, MdAdd, MdDelete, MdPerson } from "react-icons/md";
+import { MdAdd, MdDelete, MdPerson } from "react-icons/md";
 import { teamService } from "../../services/team.service";
 import { userService } from "../../services/user.service";
 import type { Team } from "../../types/team";
@@ -110,8 +110,14 @@ export function TeamMembersDialog({
         }));
 
     return (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
-            <div className="bg-white rounded-2xl shadow-xl w-full max-w-lg overflow-hidden flex flex-col max-h-[90vh]">
+        <div
+            className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm"
+            onClick={onClose}
+        >
+            <div
+                className="bg-white rounded-2xl shadow-xl w-full max-w-lg overflow-hidden flex flex-col max-h-[90vh]"
+                onClick={(e) => e.stopPropagation()}
+            >
                 <div className="p-6 border-b border-gray-100 flex items-center justify-between">
                     <div>
                         <h2 className="text-xl font-bold text-gray-900">Manage Members</h2>
@@ -119,12 +125,6 @@ export function TeamMembersDialog({
                             Add or remove members for {team.name}
                         </p>
                     </div>
-                    <button
-                        onClick={onClose}
-                        className="p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-full transition-colors cursor-pointer"
-                    >
-                        <MdClose className="text-xl" />
-                    </button>
                 </div>
 
                 <div className="p-6 overflow-y-auto flex-1">

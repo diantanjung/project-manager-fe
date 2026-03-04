@@ -1,6 +1,7 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { useSearchParams } from "react-router";
 import { useUserStore } from "../../stores/userStore";
+import { useUIStore } from "../../stores/uiStore";
 import { UserList } from "../../components/users/UserList";
 import { UserDialog } from "../../components/users/UserDialog";
 import type { User } from "../../types/auth";
@@ -21,6 +22,7 @@ export function Users() {
         deleteUser,
         setError,
     } = useUserStore();
+    const setHeader = useUIStore((state) => state.setHeader);
 
     const [searchParams, setSearchParams] = useSearchParams();
 
@@ -43,7 +45,7 @@ export function Users() {
         });
     }, [searchParams, setParams]);
 
-    const updateUrlParams = (newParams: Record<string, string | number | undefined>) => {
+    const updateUrlParams = useCallback((newParams: Record<string, string | number | undefined>) => {
         setSearchParams((prev) => {
             const next = new URLSearchParams(prev);
             Object.entries(newParams).forEach(([key, value]) => {
@@ -59,16 +61,16 @@ export function Users() {
             }
             return next;
         });
-    };
+    }, [setSearchParams]);
 
     const [isDialogOpen, setIsDialogOpen] = useState(false);
     const [editingUser, setEditingUser] = useState<User | null>(null);
 
-    const handleCreate = () => {
+    const handleCreate = useCallback(() => {
         setError(null);
         setEditingUser(null);
         setIsDialogOpen(true);
-    };
+    }, [setError]);
 
     const handleEdit = (user: User) => {
         setError(null);
@@ -90,33 +92,27 @@ export function Users() {
         }
     };
 
-    return (
-        <div className="p-8 max-w-7xl mx-auto">
-            <div className="flex flex-col gap-6 mb-8">
-                <div>
-                    <h1 className="text-2xl font-bold text-text-main-light">
-                        User Management
-                    </h1>
-                    <p className="text-text-muted-light mt-1">
-                        Manage users, roles, and permissions
-                    </p>
-                </div>
-
-                <div className="flex flex-col sm:flex-row gap-4">
-                    <div className="relative flex-1">
+    // Set Header
+    useEffect(() => {
+        setHeader({
+            title: "User Management",
+            description: "Manage users, roles, and permissions",
+            rightContent: (
+                <div className="flex items-center gap-3">
+                    <div className="relative">
                         <MdSearch className="absolute left-3 top-1/2 -translate-y-1/2 text-text-muted-light text-xl" />
                         <input
                             type="text"
-                            placeholder="Search users by name or email..."
-                            className="w-full pl-10 pr-4 py-2 bg-white border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all"
+                            placeholder="Search users..."
+                            className="w-48 xl:w-64 pl-10 pr-4 py-2 bg-white border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all text-sm"
                             value={filters.search || ""}
                             onChange={(e) => updateUrlParams({ search: e.target.value })}
                         />
                     </div>
-                    <div className="relative w-full sm:w-48">
+                    <div className="relative w-40">
                         <MdFilterList className="absolute left-3 top-1/2 -translate-y-1/2 text-text-muted-light text-xl" />
                         <select
-                            className="w-full pl-10 pr-4 py-2 bg-white border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary appearance-none transition-all"
+                            className="w-full pl-10 pr-4 py-2 bg-white border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary appearance-none transition-all text-sm"
                             value={filters.role || ""}
                             onChange={(e) => updateUrlParams({ role: e.target.value })}
                         >
@@ -129,13 +125,18 @@ export function Users() {
                     </div>
                     <button
                         onClick={handleCreate}
-                        className="flex items-center gap-2 px-4 py-2 bg-primary hover:bg-primary-dark text-white rounded-xl transition-all shadow-sm shadow-primary/20 whitespace-nowrap"
+                        className="flex items-center gap-2 px-4 py-2 bg-primary hover:bg-primary-dark text-white rounded-xl transition-all shadow-sm shadow-primary/20 whitespace-nowrap text-sm font-medium"
                     >
                         <MdAdd className="text-lg" />
                         <span className="font-semibold">Add User</span>
                     </button>
                 </div>
-            </div>
+            )
+        });
+    }, [setHeader, filters.search, filters.role, handleCreate, updateUrlParams]);
+
+    return (
+        <div className="p-8 max-w-7xl mx-auto">
 
             {error && (
                 <div className="mb-6 p-4 bg-red-50 border border-red-100 text-red-700 rounded-xl flex items-center gap-2">

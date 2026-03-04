@@ -1,5 +1,4 @@
 import { useForm, Controller } from "react-hook-form";
-import { MdClose } from "react-icons/md";
 import type { CreateTaskData, TaskStatus, TaskPriority, Task } from "../../types/task";
 import { useTaskStore } from "../../stores/taskStore";
 // import Select from "react-select"; // User asked for react hook form, assuming we use basic select or custom for now to match UI or use react-select if preferred.
@@ -15,12 +14,15 @@ import { useEffect, useMemo } from "react";
 // We probably need to fetch project team members. 
 // For now, I'll use a mocked list or if I have access to users.
 import { useUserStore } from "../../stores/userStore";
+import { useAttachmentStore } from "../../stores/attachmentStore";
+import { MdAttachFile } from "react-icons/md";
 
 interface TaskDialogProps {
     isOpen: boolean;
     onClose: () => void;
     projectId: number;
     task?: Task; // If editing
+    defaultStatus?: TaskStatus;
 }
 
 interface TaskFormValues {
@@ -30,6 +32,7 @@ interface TaskFormValues {
     priority: { value: TaskPriority; label: string };
     assignee: { value: number; label: string } | null;
     dueDate: string;
+    attachment?: FileList;
 }
 
 const statusOptions = [
@@ -47,8 +50,9 @@ const priorityOptions = [
     { value: "urgent" as const, label: "Urgent" },
 ];
 
-export function TaskDialog({ isOpen, onClose, projectId, task }: TaskDialogProps) {
+export function TaskDialog({ isOpen, onClose, projectId, task, defaultStatus }: TaskDialogProps) {
     const { createTask, updateTask } = useTaskStore();
+    const { uploadAttachment } = useAttachmentStore();
     const { users, fetchUsers } = useUserStore(); // Using global users for now, ideally filtered by project
 
     useEffect(() => {
@@ -89,17 +93,21 @@ export function TaskDialog({ isOpen, onClose, projectId, task }: TaskDialogProps
         } else {
             // Only reset to defaults if isOpen is true and there is no task (create mode)
             if (isOpen) {
+                const initialStatus = defaultStatus
+                    ? statusOptions.find(o => o.value === defaultStatus) || statusOptions[1]
+                    : statusOptions[1];
+
                 reset({
                     title: "",
                     description: "",
-                    status: statusOptions[1],
+                    status: initialStatus,
                     priority: priorityOptions[1],
                     assignee: null,
                     dueDate: "",
                 });
             }
         }
-    }, [task, isOpen, reset, userOptions]);
+    }, [task, isOpen, reset, userOptions, defaultStatus]);
 
     if (!isOpen) return null;
 
@@ -115,12 +123,20 @@ export function TaskDialog({ isOpen, onClose, projectId, task }: TaskDialogProps
                 dueDate: data.dueDate ? new Date(data.dueDate).toISOString() : undefined,
             };
 
+            let targetTaskId = task?.id;
+
             if (task) {
                 // Optimization: only send changed fields in real app
                 await updateTask(task.id, payload);
             } else {
-                await createTask(payload);
+                const newTask = await createTask(payload);
+                targetTaskId = newTask?.id;
             }
+
+            if (targetTaskId && data.attachment && data.attachment.length > 0) {
+                await uploadAttachment(targetTaskId, data.attachment[0]);
+            }
+
             onClose();
             reset();
         } catch (error) {
@@ -129,18 +145,18 @@ export function TaskDialog({ isOpen, onClose, projectId, task }: TaskDialogProps
     };
 
     return (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm">
-            <div className="w-full max-w-lg bg-white rounded-xl shadow-2xl overflow-hidden animate-in fade-in zoom-in-95 duration-200">
+        <div
+            className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm"
+            onClick={onClose}
+        >
+            <div
+                className="w-full max-w-lg bg-white rounded-xl shadow-2xl overflow-hidden animate-in fade-in zoom-in-95 duration-200"
+                onClick={(e) => e.stopPropagation()}
+            >
                 <div className="px-6 py-4 border-b border-gray-100 flex items-center justify-between">
                     <h2 className="text-lg font-bold text-gray-800">
                         {task ? "Edit Task" : "Create New Task"}
                     </h2>
-                    <button
-                        onClick={onClose}
-                        className="text-gray-400 hover:text-gray-600 transition-colors"
-                    >
-                        <MdClose className="text-xl" />
-                    </button>
                 </div>
 
                 <form onSubmit={handleSubmit(onSubmit)} className="p-6 space-y-4">
@@ -170,18 +186,20 @@ export function TaskDialog({ isOpen, onClose, projectId, task }: TaskDialogProps
                     </div>
 
                     <div className="grid grid-cols-2 gap-4">
-                        <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-1">
-                                Status
-                            </label>
-                            <Controller
-                                name="status"
-                                control={control}
-                                render={({ field }) => (
-                                    <Select {...field} options={statusOptions} className="text-sm" />
-                                )}
-                            />
-                        </div>
+                        {(!defaultStatus || task) && (
+                            <div>
+                                <label className="block text-sm font-medium text-gray-700 mb-1">
+                                    Status
+                                </label>
+                                <Controller
+                                    name="status"
+                                    control={control}
+                                    render={({ field }) => (
+                                        <Select {...field} options={statusOptions} className="text-sm" />
+                                    )}
+                                />
+                            </div>
+                        )}
                         <div>
                             <label className="block text-sm font-medium text-gray-700 mb-1">
                                 Priority
@@ -227,6 +245,28 @@ export function TaskDialog({ isOpen, onClose, projectId, task }: TaskDialogProps
                                 {...register("dueDate")}
                                 className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all bg-white"
                             />
+                        </div>
+                    </div>
+
+                    <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-1">
+                            Attachment
+                        </label>
+                        <div className="relative">
+                            <input
+                                type="file"
+                                {...register("attachment")}
+                                className="w-full text-sm text-gray-500
+                                file:mr-4 file:py-2 file:px-4
+                                file:rounded-lg file:border-0
+                                file:text-sm file:font-semibold
+                                file:bg-primary/10 file:text-primary
+                                hover:file:bg-primary/20
+                                cursor-pointer"
+                            />
+                            <div className="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none">
+                                <MdAttachFile className="text-gray-400" />
+                            </div>
                         </div>
                     </div>
 

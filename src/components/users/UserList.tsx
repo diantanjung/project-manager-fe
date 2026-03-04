@@ -1,5 +1,6 @@
 import type { User } from "../../types/auth";
 import { MdEdit, MdDelete, MdArrowUpward, MdArrowDownward } from "react-icons/md";
+import { getFullAvatarUrl } from "../../utils/avatar";
 
 interface UserListProps {
     users: User[];
@@ -68,9 +69,19 @@ export function UserList({ users, onEdit, onDelete, isLoading, sortBy, order, on
                         <tr key={user.id} className="hover:bg-gray-50/50 transition-colors">
                             <td className="px-6 py-4">
                                 <div className="flex items-center gap-3">
-                                    <div className="h-9 w-9 rounded-full bg-gradient-to-tr from-primary to-accent-purple flex items-center justify-center text-white font-bold text-sm">
-                                        {user.name.charAt(0).toUpperCase()}
-                                    </div>
+                                    {user.avatarUrl ? (
+                                        <div className="h-9 w-9 rounded-full overflow-hidden shrink-0 shadow-sm border border-gray-100">
+                                            <img
+                                                src={getFullAvatarUrl(user.avatarUrl)}
+                                                alt={user.name}
+                                                className="h-full w-full object-cover"
+                                            />
+                                        </div>
+                                    ) : (
+                                        <div className="h-9 w-9 rounded-full bg-gradient-to-tr from-primary to-accent-purple flex items-center justify-center text-white font-bold text-sm shrink-0">
+                                            {user.name.charAt(0).toUpperCase()}
+                                        </div>
+                                    )}
                                     <div className="font-medium text-text-main-light">
                                         {user.name}
                                     </div>

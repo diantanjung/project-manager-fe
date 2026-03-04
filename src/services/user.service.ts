@@ -12,6 +12,7 @@ export interface UpdateUserData {
     name?: string;
     email?: string;
     password?: string;
+    avatarUrl?: string;
     role?: User["role"];
 }
 

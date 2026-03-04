@@ -1,6 +1,7 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { useSearchParams } from "react-router";
 import { useTeamStore } from "../../stores/teamStore";
+import { useUIStore } from "../../stores/uiStore";
 import { TeamList } from "../../components/teams/TeamList";
 import { TeamDialog } from "../../components/teams/TeamDialog";
 import type { Team, CreateTeamData, UpdateTeamData } from "../../types/team";
@@ -21,6 +22,7 @@ export function Teams() {
         deleteTeam,
         setError,
     } = useTeamStore();
+    const setHeader = useUIStore((state) => state.setHeader);
 
     const [searchParams, setSearchParams] = useSearchParams();
 
@@ -65,11 +67,11 @@ export function Teams() {
     const [isMembersDialogOpen, setIsMembersDialogOpen] = useState(false);
     const [selectedTeamForMembers, setSelectedTeamForMembers] = useState<Team | null>(null);
 
-    const handleCreate = () => {
+    const handleCreate = useCallback(() => {
         setError(null);
         setEditingTeam(null);
         setIsDialogOpen(true);
-    };
+    }, [setError]);
 
     const handleEdit = (team: Team) => {
         setError(null);
@@ -96,38 +98,37 @@ export function Teams() {
         }
     };
 
-    return (
-        <div className="p-8 max-w-7xl mx-auto">
-            <div className="flex flex-col gap-6 mb-8">
-                <div>
-                    <h1 className="text-2xl font-bold text-text-main-light">
-                        Team Management
-                    </h1>
-                    <p className="text-text-muted-light mt-1">
-                        Manage teams and their descriptions
-                    </p>
-                </div>
-
-                <div className="flex flex-col sm:flex-row gap-4">
-                    <div className="relative flex-1">
+    // Set Header
+    useEffect(() => {
+        setHeader({
+            title: "Team Management",
+            description: "Manage teams and their descriptions",
+            rightContent: (
+                <div className="flex items-center gap-3">
+                    <div className="relative">
                         <MdSearch className="absolute left-3 top-1/2 -translate-y-1/2 text-text-muted-light text-xl" />
                         <input
                             type="text"
-                            placeholder="Search teams by name..."
-                            className="w-full pl-10 pr-4 py-2 bg-white border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all"
+                            placeholder="Search teams..."
+                            className="w-64 pl-10 pr-4 py-2 bg-white border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all text-sm"
                             value={filters.search || ""}
                             onChange={(e) => updateUrlParams({ search: e.target.value })}
                         />
                     </div>
                     <button
                         onClick={handleCreate}
-                        className="flex items-center gap-2 px-4 py-2 bg-primary hover:bg-primary-dark text-white rounded-xl transition-all shadow-sm shadow-primary/20 whitespace-nowrap"
+                        className="flex items-center gap-2 px-4 py-2 bg-primary hover:bg-primary-dark text-white rounded-xl transition-all shadow-sm shadow-primary/20 whitespace-nowrap text-sm font-medium"
                     >
                         <MdAdd className="text-lg" />
                         <span className="font-semibold">Add Team</span>
                     </button>
                 </div>
-            </div>
+            )
+        });
+    }, [setHeader, filters.search, handleCreate]);
+
+    return (
+        <div className="p-8 max-w-7xl mx-auto">
 
             {error && (
                 <div className="mb-6 p-4 bg-red-50 border border-red-100 text-red-700 rounded-xl flex items-center gap-2">

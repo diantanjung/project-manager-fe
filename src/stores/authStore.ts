@@ -7,6 +7,7 @@ interface AuthState {
   isAuthenticated: boolean;
   isLoading: boolean;
   login: (accessToken: string, userData: User) => void;
+  updateUser: (userData: User) => void;
   logout: () => void;
   setLoading: (loading: boolean) => void;
 }
@@ -33,6 +34,10 @@ export const useAuthStore = create<AuthState>((set) => ({
     // Only persist user data (non-sensitive)
     localStorage.setItem("user", JSON.stringify(userData));
     set({ user: userData, isAuthenticated: true });
+  },
+  updateUser: (userData: User) => {
+    localStorage.setItem("user", JSON.stringify(userData));
+    set({ user: userData });
   },
   logout: () => {
     // Clear in-memory access token

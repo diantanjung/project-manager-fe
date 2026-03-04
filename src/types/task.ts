@@ -10,6 +10,8 @@ export interface Task {
     projectId: number;
     creatorId: number;
     assigneeId: number;
+    assigneeName?: string;
+    assigneeAvatarUrl?: string;
     dueDate: string | null;
     position: number | null;
     createdAt: string;

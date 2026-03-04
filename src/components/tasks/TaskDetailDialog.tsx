@@ -1,9 +1,12 @@
 import { useEffect, useState } from "react";
-import { MdClose, MdPerson, MdCalendarToday, MdSend, MdDelete } from "react-icons/md";
+import { MdCalendarToday, MdSend, MdDelete } from "react-icons/md";
 import type { Task } from "../../types/task";
 import { useCommentStore } from "../../stores/commentStore";
 import { useAuthStore } from "../../stores/authStore";
+import { useAttachmentStore } from "../../stores/attachmentStore";
 import { TaskDialog } from "./TaskDialog";
+import { MdAttachFile, MdDownload, MdInsertDriveFile } from "react-icons/md";
+import { getFullAvatarUrl } from "../../utils/avatar";
 
 interface TaskDetailDialogProps {
     isOpen: boolean;
@@ -43,7 +46,8 @@ const formatTime = (dateString: string) => {
 };
 
 export function TaskDetailDialog({ isOpen, onClose, task, projectId }: TaskDetailDialogProps) {
-    const { comments, fetchComments, addComment, deleteComment, isLoading } = useCommentStore();
+    const { comments, fetchComments, addComment, deleteComment, isLoading: commentsLoading } = useCommentStore();
+    const { attachments, fetchAttachments, uploadAttachment, deleteAttachment, isLoading: attachmentsLoading } = useAttachmentStore();
     const { user } = useAuthStore();
     const [newComment, setNewComment] = useState("");
     const [isEditOpen, setIsEditOpen] = useState(false);
@@ -51,8 +55,25 @@ export function TaskDetailDialog({ isOpen, onClose, task, projectId }: TaskDetai
     useEffect(() => {
         if (isOpen && task) {
             fetchComments(task.id);
+            fetchAttachments(task.id);
         }
-    }, [isOpen, task, fetchComments]);
+    }, [isOpen, task, fetchComments, fetchAttachments]);
+
+    const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+        if (e.target.files && e.target.files[0]) {
+            try {
+                await uploadAttachment(task.id, e.target.files[0]);
+            } catch (error) {
+                console.error("Failed to upload attachment", error);
+            }
+        }
+    };
+
+    const handleDeleteAttachment = async (id: number) => {
+        if (window.confirm("Delete this attachment?")) {
+            await deleteAttachment(id);
+        }
+    };
 
     const handleAddComment = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -75,8 +96,14 @@ export function TaskDetailDialog({ isOpen, onClose, task, projectId }: TaskDetai
     if (!isOpen) return null;
 
     return (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4">
-            <div className="w-full max-w-4xl bg-white rounded-2xl shadow-2xl overflow-hidden flex flex-col md:flex-row h-[80vh] animate-in fade-in zoom-in-95 duration-200">
+        <div
+            className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4"
+            onClick={onClose}
+        >
+            <div
+                className="w-full max-w-4xl bg-white rounded-2xl shadow-2xl overflow-hidden flex flex-col md:flex-row h-[80vh] animate-in fade-in zoom-in-95 duration-200"
+                onClick={(e) => e.stopPropagation()}
+            >
 
                 {/* Left: Task Details */}
                 <div className="flex-1 flex flex-col border-r border-gray-100 overflow-y-auto">
@@ -97,13 +124,20 @@ export function TaskDetailDialog({ isOpen, onClose, task, projectId }: TaskDetai
 
                         <div className="flex items-center gap-6 mb-6 text-sm text-gray-600">
                             <div className="flex items-center gap-2">
-                                <div className="w-8 h-8 rounded-full bg-blue-100 text-blue-600 flex items-center justify-center font-bold">
-                                    <MdPerson />
-                                </div>
+                                {task.assigneeAvatarUrl ? (
+                                    <div className="w-8 h-8 rounded-full overflow-hidden shrink-0 shadow-sm border border-gray-100">
+                                        <img src={getFullAvatarUrl(task.assigneeAvatarUrl)} alt={task.assigneeName || `User ${task.assigneeId}`} className="h-full w-full object-cover" />
+                                    </div>
+                                ) : (
+                                    <div className="w-8 h-8 rounded-full bg-blue-100 text-blue-600 flex items-center justify-center font-bold shrink-0 text-xs">
+                                        {(task.assigneeName ? task.assigneeName.charAt(0) : 'U').toUpperCase()}
+                                    </div>
+                                )}
                                 <div className="flex flex-col">
                                     <span className="text-xs text-gray-400">Assignee</span>
-                                    {/* Ideally fetch assignee name or pass full user object if available in task */}
-                                    <span className="font-medium">User {task.assigneeId}</span>
+                                    <span className="font-medium text-text-main-light truncate max-w-[120px]" title={task.assigneeName || `User ${task.assigneeId}`}>
+                                        {task.assigneeName || `User ${task.assigneeId}`}
+                                    </span>
                                 </div>
                             </div>
 
@@ -124,6 +158,66 @@ export function TaskDetailDialog({ isOpen, onClose, task, projectId }: TaskDetai
                                 {task.description || "No description provided."}
                             </div>
                         </div>
+
+                        <div className="mb-8">
+                            <div className="flex items-center justify-between mb-4">
+                                <h3 className="text-sm font-semibold text-gray-900">Attachments</h3>
+                                <label className="cursor-pointer text-sm text-primary hover:underline flex items-center gap-1">
+                                    <MdAttachFile />
+                                    <span>Add File</span>
+                                    <input type="file" className="hidden" onChange={handleFileUpload} />
+                                </label>
+                            </div>
+
+                            {attachmentsLoading ? (
+                                <div className="text-sm text-gray-500">Loading attachments...</div>
+                            ) : attachments.length === 0 ? (
+                                <div className="text-sm text-gray-400 italic">No attachments</div>
+                            ) : (
+                                <div className="space-y-2">
+                                    {attachments.map((attachment) => (
+                                        <div
+                                            key={attachment.id}
+                                            className="flex items-center justify-between p-3 bg-gray-50 rounded-lg border border-gray-100 group hover:border-gray-200 transition-colors"
+                                        >
+                                            <div className="flex items-center gap-3 overflow-hidden">
+                                                <div className="p-2 bg-white rounded-md text-gray-500">
+                                                    <MdInsertDriveFile />
+                                                </div>
+                                                <div className="flex flex-col min-w-0">
+                                                    <span className="text-sm font-medium text-gray-900 truncate">
+                                                        {attachment.filename}
+                                                    </span>
+                                                    <span className="text-xs text-gray-400">
+                                                        {(attachment.size / 1024).toFixed(1)} KB • {formatDate(attachment.uploadedAt)}
+                                                    </span>
+                                                </div>
+                                            </div>
+                                            <div className="flex items-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                                                <a
+                                                    href={attachment.url}
+                                                    target="_blank"
+                                                    rel="noopener noreferrer"
+                                                    className="p-1.5 text-gray-400 hover:text-primary hover:bg-white rounded-md transition-colors"
+                                                    title="Download"
+                                                >
+                                                    <MdDownload />
+                                                </a>
+                                                {user?.id === attachment.uploaderId && (
+                                                    <button
+                                                        onClick={() => handleDeleteAttachment(attachment.id)}
+                                                        className="p-1.5 text-gray-400 hover:text-red-500 hover:bg-white rounded-md transition-colors"
+                                                        title="Delete"
+                                                    >
+                                                        <MdDelete />
+                                                    </button>
+                                                )}
+                                            </div>
+                                        </div>
+                                    ))}
+                                </div>
+                            )}
+                        </div>
                     </div>
                 </div>
 
@@ -131,13 +225,10 @@ export function TaskDetailDialog({ isOpen, onClose, task, projectId }: TaskDetai
                 <div className="w-full md:w-[400px] flex flex-col bg-gray-50/50">
                     <div className="p-4 border-b border-gray-100 flex items-center justify-between bg-white">
                         <h3 className="font-semibold text-gray-800">Comments</h3>
-                        <button onClick={onClose} className="md:hidden text-gray-400 hover:text-gray-600">
-                            <MdClose />
-                        </button>
                     </div>
 
                     <div className="flex-1 overflow-y-auto p-4 space-y-4">
-                        {isLoading ? (
+                        {commentsLoading ? (
                             <div className="text-center text-gray-400 text-sm py-4">Loading comments...</div>
                         ) : comments.length === 0 ? (
                             <div className="text-center text-gray-400 text-sm py-8">
@@ -146,14 +237,24 @@ export function TaskDetailDialog({ isOpen, onClose, task, projectId }: TaskDetai
                         ) : (
                             comments.map(comment => (
                                 <div key={comment.id} className="group flex gap-3">
-                                    <div className="w-8 h-8 rounded-full bg-purple-100 text-purple-600 flex items-center justify-center font-bold shrink-0 text-xs">
-                                        {/* Fallback initials */}
-                                        {comment.author?.name?.charAt(0) || "U"}
-                                    </div>
+                                    {comment.authorAvatarUrl || comment.author?.avatarUrl ? (
+                                        <div className="w-8 h-8 rounded-full overflow-hidden shrink-0 shadow-sm border border-gray-100">
+                                            <img
+                                                src={getFullAvatarUrl(comment.authorAvatarUrl || comment.author?.avatarUrl)}
+                                                alt={comment.author?.name || comment.authorName || `User ${comment.authorId}`}
+                                                className="h-full w-full object-cover"
+                                            />
+                                        </div>
+                                    ) : (
+                                        <div className="w-8 h-8 rounded-full bg-purple-100 text-purple-600 flex items-center justify-center font-bold shrink-0 text-xs text-center">
+                                            {/* Fallback initials */}
+                                            {(comment.author?.name || comment.authorName || 'U').charAt(0).toUpperCase()}
+                                        </div>
+                                    )}
                                     <div className="flex-1">
                                         <div className="flex items-center justify-between">
                                             <span className="text-sm font-semibold text-gray-900">
-                                                {comment.author?.name || `User ${comment.authorId}`}
+                                                {comment.author?.name || comment.authorName || `User ${comment.authorId}`}
                                             </span>
                                             <span className="text-xs text-gray-400">{formatTime(comment.createdAt)}</span>
                                         </div>
@@ -192,13 +293,6 @@ export function TaskDetailDialog({ isOpen, onClose, task, projectId }: TaskDetai
                         </form>
                     </div>
                 </div>
-
-                <button
-                    onClick={onClose}
-                    className="absolute top-4 right-4 text-gray-400 hover:text-gray-600 bg-white rounded-full p-1 shadow-sm md:flex hidden"
-                >
-                    <MdClose className="text-xl" />
-                </button>
             </div>
 
             <TaskDialog

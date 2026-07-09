@@ -1,6 +1,5 @@
 import { useEffect, useState } from "react";
 import { useAuthStore } from "../stores/authStore";
-import { useUIStore } from "../stores/uiStore";
 import { MdPerson, MdEdit, MdSave, MdClose, MdCameraAlt } from "react-icons/md";
 import { userService } from "../services/user.service";
 import { uploadService } from "../services/upload.service";
@@ -10,22 +9,15 @@ import { getFullAvatarUrl } from "../utils/avatar";
 
 export function Profile() {
     const { user, updateUser } = useAuthStore();
-    const setHeader = useUIStore((state) => state.setHeader);
+
     const [isEditing, setIsEditing] = useState(false);
     const [isLoading, setIsLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
-    const fileInputRef = useRef<HTMLInputElement>(null);
     const [formData, setFormData] = useState({
-        name: "",
-        email: "",
+        name: user?.name || "",
+        email: user?.email || "",
     });
-
-    useEffect(() => {
-        setHeader({
-            title: "My Profile",
-            description: "Manage your personal information",
-        });
-    }, [setHeader]);
+    const fileInputRef = useRef<HTMLInputElement>(null);
 
     useEffect(() => {
         if (user) {

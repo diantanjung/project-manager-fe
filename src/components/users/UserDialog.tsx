@@ -55,7 +55,11 @@ export function UserDialog({ isOpen, onClose, onSubmit, user, error }: UserDialo
 
     const onFormSubmit: SubmitHandler<UserFormInputs> = async (data) => {
         try {
-            await onSubmit(data);
+            const submitData = { ...data };
+            if (!submitData.password) {
+                delete submitData.password;
+            }
+            await onSubmit(submitData);
             onClose();
         } catch {
             // Error is handled by parent

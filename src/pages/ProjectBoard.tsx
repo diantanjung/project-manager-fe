@@ -1,8 +1,6 @@
 import { useEffect, useState } from "react";
 import { useParams } from "react-router";
 import { useTaskStore } from "../stores/taskStore";
-import { useProjectStore } from "../stores/projectStore";
-import { useUIStore } from "../stores/uiStore";
 import { TaskCard } from "../components/tasks/TaskCard";
 import type { TaskStatus } from "../types/task";
 import { MdAdd } from "react-icons/md";
@@ -27,15 +25,10 @@ const COLUMNS: { id: TaskStatus; label: string }[] = [
 export function ProjectBoard() {
     const { projectId } = useParams();
     const { tasks, fetchTasks, isLoading, error, moveTask } = useTaskStore();
-    const { projects } = useProjectStore();
-    const setHeader = useUIStore((state) => state.setHeader);
     const [isCreateTaskOpen, setIsCreateTaskOpen] = useState(false);
     const [createTaskDefaultStatus, setCreateTaskDefaultStatus] = useState<TaskStatus | undefined>(undefined);
     const [selectedTaskId, setSelectedTaskId] = useState<number | null>(null);
     const [viewMode, setViewMode] = useState<"board" | "list">("board");
-
-    // Find current project name for header
-    const currentProject = projects.find(p => p.id === Number(projectId));
 
     const selectedTask = selectedTaskId ? tasks.find(t => t.id === selectedTaskId) : null;
 
@@ -44,14 +37,6 @@ export function ProjectBoard() {
             fetchTasks(Number(projectId));
         }
     }, [projectId, fetchTasks]);
-
-    // Set Header
-    useEffect(() => {
-        setHeader({
-            title: currentProject?.name || "Project Board",
-            description: currentProject?.description || "Manage your tasks",
-        });
-    }, [setHeader, currentProject]);
 
     const onDragEnd = (result: DropResult) => {
         const { destination, source, draggableId } = result;

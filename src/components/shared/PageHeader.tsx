@@ -1,18 +1,18 @@
 import type { ReactNode } from "react";
 import { useUIStore } from "../../stores/uiStore";
 import { MdMenu } from "react-icons/md";
+import { Breadcrumbs } from "./Breadcrumbs";
+import { NotificationBell } from "../notifications/NotificationBell";
 
 interface PageHeaderProps {
-    title: string;
-    description: string;
     rightContent?: ReactNode;
 }
 
-export function PageHeader({ title, description, rightContent }: PageHeaderProps) {
+export function PageHeader({ rightContent }: PageHeaderProps) {
     const { isSidebarOpen, toggleSidebar } = useUIStore();
 
     return (
-        <div className="h-16 border-b border-gray-100 flex items-center justify-between px-6 bg-white shrink-0">
+        <div className="min-h-[64px] py-3 border-b border-gray-100 flex items-center justify-between px-6 bg-white shrink-0">
             <div className="flex items-center gap-3">
                 {/* Only show menu button if sidebar is closed */}
                 {!isSidebarOpen && (
@@ -24,23 +24,16 @@ export function PageHeader({ title, description, rightContent }: PageHeaderProps
                     </button>
                 )}
 
-                <div>
-                    <h1 className="text-xl font-bold text-text-main-light">
-                        {title}
-                    </h1>
-                    {description && (
-                        <p className="text-sm text-text-muted-light">
-                            {description}
-                        </p>
-                    )}
+                <div className="flex flex-col justify-center">
+                    <Breadcrumbs />
                 </div>
             </div>
             {/* Area for action buttons on the right */}
-            {rightContent && (
-                <div className="flex items-center gap-3">
-                    {rightContent}
-                </div>
-            )}
+            <div className="flex items-center gap-3">
+                {rightContent}
+                {rightContent && <div className="h-8 w-px bg-gray-200 mx-1"></div>}
+                <NotificationBell />
+            </div>
         </div>
     );
 }

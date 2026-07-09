@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback } from "react";
 import { useSearchParams } from "react-router";
 import { useUserStore } from "../../stores/userStore";
-import { useUIStore } from "../../stores/uiStore";
+
 import { UserList } from "../../components/users/UserList";
 import { UserDialog } from "../../components/users/UserDialog";
 import type { User } from "../../types/auth";
@@ -22,7 +22,6 @@ export function Users() {
         deleteUser,
         setError,
     } = useUserStore();
-    const setHeader = useUIStore((state) => state.setHeader);
 
     const [searchParams, setSearchParams] = useSearchParams();
 
@@ -92,12 +91,14 @@ export function Users() {
         }
     };
 
-    // Set Header
-    useEffect(() => {
-        setHeader({
-            title: "User Management",
-            description: "Manage users, roles, and permissions",
-            rightContent: (
+    return (
+        <div className="p-8 max-w-7xl mx-auto">
+            {/* Page Header Area */}
+            <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8">
+                <div>
+                    <h1 className="text-2xl font-bold text-text-main-light mb-1">User Management</h1>
+                    <p className="text-text-muted-light text-sm">Manage users, roles, and permissions</p>
+                </div>
                 <div className="flex items-center gap-3">
                     <div className="relative">
                         <MdSearch className="absolute left-3 top-1/2 -translate-y-1/2 text-text-muted-light text-xl" />
@@ -131,12 +132,7 @@ export function Users() {
                         <span className="font-semibold">Add User</span>
                     </button>
                 </div>
-            )
-        });
-    }, [setHeader, filters.search, filters.role, handleCreate, updateUrlParams]);
-
-    return (
-        <div className="p-8 max-w-7xl mx-auto">
+            </div>
 
             {error && (
                 <div className="mb-6 p-4 bg-red-50 border border-red-100 text-red-700 rounded-xl flex items-center gap-2">

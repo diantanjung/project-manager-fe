@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback } from "react";
 import { useSearchParams } from "react-router";
 import { useTeamStore } from "../../stores/teamStore";
-import { useUIStore } from "../../stores/uiStore";
+
 import { TeamList } from "../../components/teams/TeamList";
 import { TeamDialog } from "../../components/teams/TeamDialog";
 import type { Team, CreateTeamData, UpdateTeamData } from "../../types/team";
@@ -22,7 +22,6 @@ export function Teams() {
         deleteTeam,
         setError,
     } = useTeamStore();
-    const setHeader = useUIStore((state) => state.setHeader);
 
     const [searchParams, setSearchParams] = useSearchParams();
 
@@ -98,12 +97,14 @@ export function Teams() {
         }
     };
 
-    // Set Header
-    useEffect(() => {
-        setHeader({
-            title: "Team Management",
-            description: "Manage teams and their descriptions",
-            rightContent: (
+    return (
+        <div className="p-8 max-w-7xl mx-auto">
+            {/* Page Header Area */}
+            <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8">
+                <div>
+                    <h1 className="text-2xl font-bold text-text-main-light mb-1">Team Management</h1>
+                    <p className="text-text-muted-light text-sm">Manage teams and their descriptions</p>
+                </div>
                 <div className="flex items-center gap-3">
                     <div className="relative">
                         <MdSearch className="absolute left-3 top-1/2 -translate-y-1/2 text-text-muted-light text-xl" />
@@ -123,12 +124,7 @@ export function Teams() {
                         <span className="font-semibold">Add Team</span>
                     </button>
                 </div>
-            )
-        });
-    }, [setHeader, filters.search, handleCreate]);
-
-    return (
-        <div className="p-8 max-w-7xl mx-auto">
+            </div>
 
             {error && (
                 <div className="mb-6 p-4 bg-red-50 border border-red-100 text-red-700 rounded-xl flex items-center gap-2">

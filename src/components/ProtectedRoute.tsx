@@ -1,3 +1,4 @@
+import { useEffect } from "react";
 import { Navigate, Outlet, useLocation } from "react-router";
 import { useAuthStore } from "../stores/authStore";
 import type { User } from "../types/auth";
@@ -7,8 +8,12 @@ interface ProtectedRouteProps {
 }
 
 export function ProtectedRoute({ allowedRoles }: ProtectedRouteProps) {
-  const { isAuthenticated, isLoading, user } = useAuthStore();
+  const { isAuthenticated, isLoading, user, initializeAuth } = useAuthStore();
   const location = useLocation();
+
+  useEffect(() => {
+    initializeAuth();
+  }, [initializeAuth]);
 
   if (isLoading) {
     return <div>Loading...</div>; // Or a proper loading spinner

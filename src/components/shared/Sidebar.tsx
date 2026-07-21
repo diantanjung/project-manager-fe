@@ -2,9 +2,8 @@
 import {
   MdDonutLarge,
   MdDashboard,
-  MdCheckCircle,
-  MdInbox,
-  MdPieChart,
+  MdGroups,
+  MdPerson,
   MdAdd,
   MdChevronLeft,
 } from "react-icons/md";
@@ -93,33 +92,17 @@ export function Sidebar() {
               icon={<MdDashboard className="text-xl" />}
               label="Home"
             />
-            <NavItem
-              to="/tasks"
-              icon={<MdCheckCircle className="text-xl" />}
-              label="My Tasks"
-              badge="8"
-            />
-            <NavItem
-              to="/inbox"
-              icon={<MdInbox className="text-xl" />}
-              label="Inbox"
-            />
-            <NavItem
-              to="/reports"
-              icon={<MdPieChart className="text-xl" />}
-              label="Reports"
-            />
             {user?.role === "admin" && (
               <>
                 <NavItem
                   to="/admin/users"
-                  icon={<MdDonutLarge className="text-xl" />}
-                  label="Manage Users"
+                  icon={<MdPerson className="text-xl" />}
+                  label="Users"
                 />
                 <NavItem
                   to="/admin/teams"
-                  icon={<MdDonutLarge className="text-xl" />}
-                  label="Manage Teams"
+                  icon={<MdGroups className="text-xl" />}
+                  label="Teams"
                 />
               </>
             )}

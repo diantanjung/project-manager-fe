@@ -1,3 +1,4 @@
+import axios from "axios";
 import { api, setAccessToken } from "../lib/axios";
 import type {
   LoginCredentials,
@@ -24,9 +25,10 @@ export const authService = {
 
   async refreshAccessToken(): Promise<{ accessToken: string }> {
     // Refresh token is sent automatically via HttpOnly cookie
-    const { data } = await api.post<{ accessToken: string }>(
-      "/auth/refresh",
-      {}
+    const { data } = await axios.post<{ accessToken: string }>(
+      `${api.defaults.baseURL}/auth/refresh`,
+      {},
+      { withCredentials: true }
     );
     // Store new access token in memory
     setAccessToken(data.accessToken);

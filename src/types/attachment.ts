@@ -1,12 +1,13 @@
 export interface Attachment {
     id: number;
-    filename: string;
-    url: string;
+    fileName: string;
+    fileUrl: string;
+    fileSize: number | null;
     mimeType: string;
-    size: number;
     taskId: number;
     uploaderId: number;
-    uploadedAt: string;
+    createdAt: string;
+    updatedAt: string;
     uploader?: {
         id: number;
         name: string;

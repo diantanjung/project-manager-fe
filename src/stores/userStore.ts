@@ -2,6 +2,7 @@ import { create } from "zustand";
 import { userService } from "../services/user.service";
 import type { CreateUserData, UpdateUserData, UserQueryParams } from "../services/user.service";
 import type { User } from "../types/auth";
+import { getApiErrorMessage } from "../utils/apiError";
 
 interface UserState {
     users: User[];
@@ -17,7 +18,7 @@ interface UserState {
     fetchUsers: () => Promise<void>;
     setFilters: (filters: Partial<UserQueryParams>) => void;
     setPage: (page: number) => void;
-    setParams: (params: { page?: number; filters?: UserQueryParams }) => void;
+    setParams: (params: { page?: number; limit?: number; filters?: UserQueryParams }) => void;
     createUser: (data: CreateUserData) => Promise<User | undefined>;
     updateUser: (id: number, data: UpdateUserData) => Promise<User | undefined>;
     deleteUser: (id: number) => Promise<void>;
@@ -40,24 +41,16 @@ export const useUserStore = create<UserState>((set, get) => ({
         set({ isLoading: true, error: null });
         try {
             const response = await userService.getUsers({ ...filters, page, limit });
-            console.log("Store: Values from API:", response);
 
-            // Handle both array (legacy) and paginated object responses
-            if (Array.isArray(response)) {
-                set({ users: response, total: response.length, totalPages: 1, isLoading: false });
-            } else {
-                set({
-                    users: response.data,
-                    total: response.pagination.totalItems,
-                    page: response.pagination.page,
-                    totalPages: response.pagination.totalPages,
-                    isLoading: false
-                });
-            }
+            set({
+                users: response.data,
+                total: response.pagination.totalItems,
+                page: response.pagination.page,
+                totalPages: response.pagination.totalPages,
+                isLoading: false
+            });
         } catch (err: unknown) {
-            const message =
-                // eslint-disable-next-line
-                (err as any).response?.data?.message || "Failed to fetch users";
+            const message = getApiErrorMessage(err, "Failed to fetch users");
             set({ error: message, isLoading: false });
         }
     },
@@ -75,9 +68,10 @@ export const useUserStore = create<UserState>((set, get) => ({
         get().fetchUsers();
     },
 
-    setParams: ({ page, filters }) => {
+    setParams: ({ page, limit, filters }) => {
         set((state) => ({
             page: page ?? state.page,
+            limit: limit ?? state.limit,
             filters: { ...state.filters, ...filters }
         }));
         get().fetchUsers();
@@ -91,9 +85,7 @@ export const useUserStore = create<UserState>((set, get) => ({
             await get().fetchUsers();
             return newUser;
         } catch (err: unknown) {
-            const message =
-                // eslint-disable-next-line
-                (err as any).response?.data?.message || "Failed to create user";
+            const message = getApiErrorMessage(err, "Failed to create user");
             set({ error: message, isLoading: false });
             throw err;
         }
@@ -109,9 +101,7 @@ export const useUserStore = create<UserState>((set, get) => ({
             }));
             return updatedUser;
         } catch (err: unknown) {
-            const message =
-                // eslint-disable-next-line
-                (err as any).response?.data?.message || "Failed to update user";
+            const message = getApiErrorMessage(err, "Failed to update user");
             set({ error: message, isLoading: false });
             throw err;
         }
@@ -127,9 +117,7 @@ export const useUserStore = create<UserState>((set, get) => ({
                 isLoading: false
             }));
         } catch (err: unknown) {
-            const message =
-                // eslint-disable-next-line
-                (err as any).response?.data?.message || "Failed to delete user";
+            const message = getApiErrorMessage(err, "Failed to delete user");
             set({ error: message, isLoading: false });
             throw err;
         }

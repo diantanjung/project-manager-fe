@@ -1,6 +1,7 @@
 import { create } from "zustand";
 import { commentService } from "../services/comment.service";
 import type { Comment } from "../types/comment";
+import { useAuthStore } from "./authStore";
 
 interface CommentState {
     comments: Comment[];
@@ -35,7 +36,14 @@ export const useCommentStore = create<CommentState>((set) => ({
         // But we need the author info which might be tricky to mock fully without auth store access here easily.
         // Let's stick to standard async for now.
         try {
-            const newComment = await commentService.createComment(taskId, { content });
+            const user = useAuthStore.getState().user;
+            if (!user) {
+                throw new Error("You must be logged in to comment.");
+            }
+            const newComment = await commentService.createComment(taskId, {
+                content,
+                authorId: user.id,
+            });
             set((state) => ({
                 comments: [...state.comments, newComment],
             }));

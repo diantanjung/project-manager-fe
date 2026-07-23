@@ -12,6 +12,11 @@ export interface Task {
     assigneeId: number;
     assigneeName?: string;
     assigneeAvatarUrl?: string;
+    assignee?: {
+        id: number;
+        name: string;
+        avatarUrl?: string;
+    };
     dueDate: string | null;
     position: number | null;
     createdAt: string;
@@ -24,6 +29,7 @@ export interface CreateTaskData {
     status?: TaskStatus;
     priority?: TaskPriority;
     projectId: number;
+    creatorId?: number;
     assigneeId: number;
     dueDate?: string;
 }
@@ -33,6 +39,8 @@ export interface UpdateTaskData {
     description?: string;
     status?: TaskStatus;
     priority?: TaskPriority;
+    projectId?: number;
+    creatorId?: number;
     assigneeId?: number;
     dueDate?: string;
     position?: number;

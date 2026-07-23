@@ -186,16 +186,16 @@ export function TaskDetailDialog({ isOpen, onClose, task, projectId }: TaskDetai
                                                 </div>
                                                 <div className="flex flex-col min-w-0">
                                                     <span className="text-sm font-medium text-gray-900 truncate">
-                                                        {attachment.filename}
+                                                        {attachment.fileName}
                                                     </span>
                                                     <span className="text-xs text-gray-400">
-                                                        {(attachment.size / 1024).toFixed(1)} KB • {formatDate(attachment.uploadedAt)}
+                                                        {((attachment.fileSize ?? 0) / 1024).toFixed(1)} KB • {formatDate(attachment.createdAt)}
                                                     </span>
                                                 </div>
                                             </div>
                                             <div className="flex items-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
                                                 <a
-                                                    href={attachment.url}
+                                                    href={attachment.fileUrl}
                                                     target="_blank"
                                                     rel="noopener noreferrer"
                                                     className="p-1.5 text-gray-400 hover:text-primary hover:bg-white rounded-md transition-colors"

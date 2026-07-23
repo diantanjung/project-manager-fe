@@ -1,9 +1,9 @@
 export type NotificationType = "task_assigned" | "mention" | "system_alert";
 
 export interface Notification {
-    id: number;
-    userId: number;
-    actorId: number | null;
+    id: string;
+    userId: number | string;
+    actorId: number | string | null;
     actorName: string | null;
     actorAvatarUrl: string | null;
     type: NotificationType;

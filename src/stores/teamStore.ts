@@ -2,6 +2,7 @@ import { create } from "zustand";
 import { teamService } from "../services/team.service";
 import type { TeamQueryParams } from "../services/team.service";
 import type { Team, CreateTeamData, UpdateTeamData } from "../types/team";
+import { getApiErrorMessage } from "../utils/apiError";
 
 interface TeamState {
     teams: Team[];
@@ -46,7 +47,7 @@ export const useTeamStore = create<TeamState>((set, get) => ({
                 isLoading: false,
             });
         } catch (err: unknown) {
-            const message = (err as any).response?.data?.message || "Failed to fetch teams";
+            const message = getApiErrorMessage(err, "Failed to fetch teams");
             set({ error: message, isLoading: false });
         }
     },
@@ -74,7 +75,7 @@ export const useTeamStore = create<TeamState>((set, get) => ({
             await get().fetchTeams();
             return newTeam;
         } catch (err: unknown) {
-            const message = (err as any).response?.data?.message || "Failed to create team";
+            const message = getApiErrorMessage(err, "Failed to create team");
             set({ error: message, isLoading: false });
             throw err;
         }
@@ -90,7 +91,7 @@ export const useTeamStore = create<TeamState>((set, get) => ({
             }));
             return updatedTeam;
         } catch (err: unknown) {
-            const message = (err as any).response?.data?.message || "Failed to update team";
+            const message = getApiErrorMessage(err, "Failed to update team");
             set({ error: message, isLoading: false });
             throw err;
         }
@@ -106,7 +107,7 @@ export const useTeamStore = create<TeamState>((set, get) => ({
                 isLoading: false,
             }));
         } catch (err: unknown) {
-            const message = (err as any).response?.data?.message || "Failed to delete team";
+            const message = getApiErrorMessage(err, "Failed to delete team");
             set({ error: message, isLoading: false });
             throw err;
         }

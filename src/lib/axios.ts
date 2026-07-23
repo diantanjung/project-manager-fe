@@ -1,7 +1,24 @@
-import axios from "axios";
+import axios, { AxiosError } from "axios";
+import type { ApiValidationError } from "../types/api";
+import type { AuthResponseEnvelope } from "../types/auth";
 
 // In-memory access token storage (secure - not accessible via XSS)
 let accessToken: string | null = null;
+
+const normalizeBaseURL = (url?: string) => {
+  const fallback = "http://localhost:8000";
+  const trimmed = (url || fallback).replace(/\/+$/, "");
+
+  if (trimmed.endsWith("/api/v1")) {
+    return trimmed;
+  }
+
+  if (trimmed.endsWith("/api")) {
+    return `${trimmed}/v1`;
+  }
+
+  return `${trimmed}/api/v1`;
+};
 
 export const setAccessToken = (token: string | null) => {
   accessToken = token;
@@ -9,13 +26,59 @@ export const setAccessToken = (token: string | null) => {
 
 export const getAccessToken = () => accessToken;
 
+export class ApiError extends Error {
+  status?: number;
+  errors?: Record<string, string[]>;
+
+  constructor(message: string, status?: number, errors?: Record<string, string[]>) {
+    super(message);
+    this.name = "ApiError";
+    this.status = status;
+    this.errors = errors;
+  }
+}
+
 export const api = axios.create({
-  baseURL: import.meta.env.VITE_API_URL,
+  baseURL: normalizeBaseURL(import.meta.env.VITE_API_URL),
   headers: {
     "Content-Type": "application/json",
   },
   withCredentials: true, // Send HttpOnly cookies with requests
 });
+
+const toApiError = (error: AxiosError<ApiValidationError>) => {
+  const status = error.response?.status;
+  const message = error.response?.data?.message || error.message;
+  return new ApiError(message, status, error.response?.data?.errors);
+};
+
+const emitHandledApiError = (error: ApiError) => {
+  if ([403, 409, 422, 429].includes(error.status ?? 0)) {
+    window.dispatchEvent(
+      new CustomEvent("api:error", {
+        detail: {
+          status: error.status,
+          message: error.message,
+          errors: error.errors,
+        },
+      }),
+    );
+  }
+};
+
+const unwrapResponseEnvelope = <T>(response: AuthResponseEnvelope<T>): T => {
+  if (
+    response &&
+    typeof response === "object" &&
+    "data" in response &&
+    response.data &&
+    typeof response.data === "object"
+  ) {
+    return response.data as T;
+  }
+
+  return response as T;
+};
 
 // Request interceptor - attach access token from memory
 api.interceptors.request.use((config) => {
@@ -66,13 +129,13 @@ api.interceptors.response.use(
 
       try {
         // Refresh token is sent automatically via HttpOnly cookie
-        const { data } = await axios.post(
+        const { data } = await axios.post<AuthResponseEnvelope<{ accessToken: string }>>(
           `${api.defaults.baseURL}/auth/refresh`,
           {}, // Empty body - refresh token is in cookie
           { withCredentials: true }
         );
 
-        const newAccessToken = data.accessToken;
+        const newAccessToken = unwrapResponseEnvelope(data).accessToken;
 
         // Store new access token in memory
         accessToken = newAccessToken;
@@ -96,6 +159,8 @@ api.interceptors.response.use(
       }
     }
 
-    return Promise.reject(error);
+    const apiError = toApiError(error);
+    emitHandledApiError(apiError);
+    return Promise.reject(apiError);
   }
 );

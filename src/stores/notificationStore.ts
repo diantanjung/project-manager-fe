@@ -1,6 +1,7 @@
 import { create } from "zustand";
 import type { Notification } from "../types/notification";
 import { notificationService } from "../services/notification.service";
+import { getApiErrorMessage } from "../utils/apiError";
 
 interface NotificationState {
     notifications: Notification[];
@@ -8,7 +9,7 @@ interface NotificationState {
     isLoading: boolean;
     error: string | null;
     fetchNotifications: () => Promise<void>;
-    markAsRead: (id: number) => Promise<void>;
+    markAsRead: (id: string) => Promise<void>;
     markAllAsRead: () => Promise<void>;
 }
 
@@ -24,15 +25,15 @@ export const useNotificationStore = create<NotificationState>((set, get) => ({
             const { data } = await notificationService.getNotifications();
             const unreadCount = data.filter((n) => !n.isRead).length;
             set({ notifications: data, unreadCount, isLoading: false });
-        } catch (error: any) {
+        } catch (error: unknown) {
             set({
-                error: error.response?.data?.message || "Failed to fetch notifications",
+                error: getApiErrorMessage(error, "Failed to fetch notifications"),
                 isLoading: false,
             });
         }
     },
 
-    markAsRead: async (id: number) => {
+    markAsRead: async (id: string) => {
         try {
             await notificationService.markAsRead(id);
             const { notifications, unreadCount } = get();
@@ -43,7 +44,7 @@ export const useNotificationStore = create<NotificationState>((set, get) => ({
                 notifications: updatedNotifications,
                 unreadCount: Math.max(0, unreadCount - 1),
             });
-        } catch (error: any) {
+        } catch (error: unknown) {
             console.error("Failed to mark notification as read", error);
         }
     },
@@ -57,7 +58,7 @@ export const useNotificationStore = create<NotificationState>((set, get) => ({
                 isRead: true,
             }));
             set({ notifications: updatedNotifications, unreadCount: 0 });
-        } catch (error: any) {
+        } catch (error: unknown) {
             console.error("Failed to mark all notifications as read", error);
         }
     },

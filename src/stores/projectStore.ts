@@ -2,6 +2,8 @@ import { create } from "zustand";
 import { projectService } from "../services/project.service";
 import type { ProjectQueryParams } from "../services/project.service";
 import type { CreateProjectData, UpdateProjectData, Project } from "../types/project";
+import { useAuthStore } from "./authStore";
+import { getApiErrorMessage } from "../utils/apiError";
 
 interface ProjectState {
     projects: Project[];
@@ -41,7 +43,7 @@ export const useProjectStore = create<ProjectState>((set, get) => ({
                 isLoading: false,
             });
         } catch (err: unknown) {
-            const message = (err as any).response?.data?.message || "Failed to fetch projects";
+            const message = getApiErrorMessage(err, "Failed to fetch projects");
             set({ error: message, isLoading: false });
         }
     },
@@ -49,12 +51,19 @@ export const useProjectStore = create<ProjectState>((set, get) => ({
     createProject: async (data) => {
         set({ isLoading: true, error: null });
         try {
-            const newProject = await projectService.createProject(data);
+            const user = useAuthStore.getState().user;
+            if (!user) {
+                throw new Error("You must be logged in to create a project.");
+            }
+            const newProject = await projectService.createProject({
+                ...data,
+                ownerId: data.ownerId ?? user.id,
+            });
             // Refresh the list to include the new project
             await get().fetchProjects();
             return newProject;
         } catch (err: unknown) {
-            const message = (err as any).response?.data?.message || "Failed to create project";
+            const message = getApiErrorMessage(err, "Failed to create project");
             set({ error: message, isLoading: false });
             throw err;
         }
@@ -70,7 +79,7 @@ export const useProjectStore = create<ProjectState>((set, get) => ({
             }));
             return updatedProject;
         } catch (err: unknown) {
-            const message = (err as any).response?.data?.message || "Failed to update project";
+            const message = getApiErrorMessage(err, "Failed to update project");
             set({ error: message, isLoading: false });
             throw err;
         }
@@ -86,7 +95,7 @@ export const useProjectStore = create<ProjectState>((set, get) => ({
                 isLoading: false,
             }));
         } catch (err: unknown) {
-            const message = (err as any).response?.data?.message || "Failed to delete project";
+            const message = getApiErrorMessage(err, "Failed to delete project");
             set({ error: message, isLoading: false });
             throw err;
         }

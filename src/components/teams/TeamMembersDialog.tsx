@@ -1,10 +1,11 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import Select from "react-select";
 import { MdAdd, MdDelete, MdPerson } from "react-icons/md";
 import { teamService } from "../../services/team.service";
 import { userService } from "../../services/user.service";
 import type { Team } from "../../types/team";
 import type { User } from "../../types/auth";
+import { getApiErrorMessage } from "../../utils/apiError";
 
 interface UserOption {
     value: number;
@@ -37,18 +38,7 @@ export function TeamMembersDialog({
     const [isLoading, setIsLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
 
-    useEffect(() => {
-        if (isOpen && team) {
-            loadData();
-        } else {
-            setMembers([]);
-            setAvailableUsers([]);
-            setSelectedUser(null);
-            setError(null);
-        }
-    }, [isOpen, team]);
-
-    const loadData = async () => {
+    const loadData = useCallback(async () => {
         if (!team) return;
         setIsLoading(true);
         setError(null);
@@ -65,7 +55,18 @@ export function TeamMembersDialog({
         } finally {
             setIsLoading(false);
         }
-    };
+    }, [team]);
+
+    useEffect(() => {
+        if (isOpen && team) {
+            loadData();
+        } else {
+            setMembers([]);
+            setAvailableUsers([]);
+            setSelectedUser(null);
+            setError(null);
+        }
+    }, [isOpen, team, loadData]);
 
     const handleAddMember = async () => {
         if (!team || !selectedUser) return;
@@ -75,9 +76,9 @@ export function TeamMembersDialog({
             await teamService.addTeamMember(team.id, selectedUser.value);
             await loadData(); // Reload to refresh lists
             setSelectedUser(null);
-        } catch (err: any) {
+        } catch (err: unknown) {
             console.error("Failed to add member", err);
-            setError(err.response?.data?.message || "Failed to add member.");
+            setError(getApiErrorMessage(err, "Failed to add member."));
         } finally {
             setIsLoading(false);
         }
@@ -91,9 +92,9 @@ export function TeamMembersDialog({
         try {
             await teamService.removeTeamMember(team.id, userId);
             await loadData();
-        } catch (err: any) {
+        } catch (err: unknown) {
             console.error("Failed to remove member", err);
-            setError(err.response?.data?.message || "Failed to remove member.");
+            setError(getApiErrorMessage(err, "Failed to remove member."));
         } finally {
             setIsLoading(false);
         }

@@ -1,6 +1,8 @@
 import { create } from "zustand";
 import { attachmentService } from "../services/attachment.service";
 import type { Attachment } from "../types/attachment";
+import { useAuthStore } from "./authStore";
+import { getApiErrorMessage } from "../utils/apiError";
 
 interface AttachmentState {
     attachments: Attachment[];
@@ -23,7 +25,7 @@ export const useAttachmentStore = create<AttachmentState>((set) => ({
             const attachments = await attachmentService.getAttachments(taskId);
             set({ attachments, isLoading: false });
         } catch (err: unknown) {
-            const message = (err as any).response?.data?.message || "Failed to fetch attachments";
+            const message = getApiErrorMessage(err, "Failed to fetch attachments");
             set({ error: message, isLoading: false });
         }
     },
@@ -31,13 +33,17 @@ export const useAttachmentStore = create<AttachmentState>((set) => ({
     uploadAttachment: async (taskId, file) => {
         set({ isLoading: true, error: null });
         try {
-            const newAttachment = await attachmentService.uploadAttachment(taskId, file);
+            const user = useAuthStore.getState().user;
+            if (!user) {
+                throw new Error("You must be logged in to upload an attachment.");
+            }
+            const newAttachment = await attachmentService.uploadAttachment(taskId, file, user.id);
             set((state) => ({
                 attachments: [...state.attachments, newAttachment],
                 isLoading: false,
             }));
         } catch (err: unknown) {
-            const message = (err as any).response?.data?.message || "Failed to upload attachment";
+            const message = getApiErrorMessage(err, "Failed to upload attachment");
             set({ error: message, isLoading: false });
             throw err;
         }
@@ -52,7 +58,7 @@ export const useAttachmentStore = create<AttachmentState>((set) => ({
                 isLoading: false,
             }));
         } catch (err: unknown) {
-            const message = (err as any).response?.data?.message || "Failed to delete attachment";
+            const message = getApiErrorMessage(err, "Failed to delete attachment");
             set({ error: message, isLoading: false });
             throw err;
         }

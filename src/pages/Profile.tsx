@@ -60,7 +60,7 @@ export function Profile() {
         try {
             setIsLoading(true);
             setError(null);
-            const { url } = await uploadService.uploadFile(file);
+            const { url } = await uploadService.uploadFile(file, user.id);
             const updatedUser = await userService.updateUser(user.id, { avatarUrl: url });
             updateUser(updatedUser);
         } catch (err) {

@@ -14,6 +14,7 @@ export interface Comment {
 
 export interface CreateCommentData {
     content: string;
+    authorId: number;
 }
 
 export interface UpdateCommentData {

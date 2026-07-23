@@ -1,5 +1,7 @@
 import { api } from "../lib/axios";
 import type { Team, CreateTeamData, UpdateTeamData } from "../types/team";
+import type { ApiResource, PaginatedResource } from "../types/api";
+import { unwrapResource, withPaginationFallback } from "../types/api";
 
 export interface TeamQueryParams {
     page?: number;
@@ -9,35 +11,25 @@ export interface TeamQueryParams {
     order?: "asc" | "desc";
 }
 
-interface PaginatedResponse<T> {
-    data: T[];
-    pagination: {
-        page: number;
-        limit: number;
-        totalItems: number;
-        totalPages: number;
-    };
-}
-
 export const teamService = {
     getAllTeams: async (params?: TeamQueryParams) => {
-        const response = await api.get<PaginatedResponse<Team>>("/teams", { params });
-        return response.data;
+        const response = await api.get<PaginatedResource<Team> | { data: Team[] }>("/teams", { params });
+        return withPaginationFallback(response.data, params?.limit);
     },
 
     getTeamById: async (id: number) => {
-        const response = await api.get<Team>(`/teams/${id}`);
-        return response.data;
+        const response = await api.get<ApiResource<Team>>(`/teams/${id}`);
+        return unwrapResource(response.data);
     },
 
     createTeam: async (data: CreateTeamData) => {
-        const response = await api.post<Team>("/teams", data);
-        return response.data;
+        const response = await api.post<ApiResource<Team>>("/teams", data);
+        return unwrapResource(response.data);
     },
 
     updateTeam: async (id: number, data: UpdateTeamData) => {
-        const response = await api.patch<Team>(`/teams/${id}`, data);
-        return response.data;
+        const response = await api.patch<ApiResource<Team>>(`/teams/${id}`, data);
+        return unwrapResource(response.data);
     },
 
     deleteTeam: async (id: number) => {

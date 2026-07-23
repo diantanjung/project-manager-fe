@@ -1,6 +1,7 @@
 import { create } from "zustand";
 import { taskService } from "../services/task.service";
 import type { Task, CreateTaskData, UpdateTaskData, TaskQueryParams } from "../types/task";
+import { useAuthStore } from "./authStore";
 
 interface TaskState {
     tasks: Task[];
@@ -37,7 +38,14 @@ export const useTaskStore = create<TaskState>((set, get) => ({
     createTask: async (data) => {
         set({ isLoading: true, error: null });
         try {
-            const newTask = await taskService.createTask(data);
+            const user = useAuthStore.getState().user;
+            if (!user) {
+                throw new Error("You must be logged in to create a task.");
+            }
+            const newTask = await taskService.createTask({
+                ...data,
+                creatorId: data.creatorId ?? user.id,
+            });
             set((state) => ({
                 tasks: [...state.tasks, newTask],
                 isLoading: false

@@ -15,6 +15,8 @@ export function Users() {
         error,
         page,
         totalPages,
+        total,
+        limit,
         filters,
         setParams,
         createUser,
@@ -28,6 +30,7 @@ export function Users() {
     // Sync URL -> Store
     useEffect(() => {
         const pageFromUrl = Number(searchParams.get("page")) || 1;
+        const limitFromUrl = Number(searchParams.get("limit")) || 10;
         const searchFromUrl = searchParams.get("search") || undefined;
         const roleFromUrl = searchParams.get("role") || undefined;
         const sortByFromUrl = searchParams.get("sortBy") || undefined;
@@ -35,6 +38,7 @@ export function Users() {
 
         setParams({
             page: pageFromUrl,
+            limit: limitFromUrl,
             filters: {
                 search: searchFromUrl,
                 role: roleFromUrl,
@@ -55,7 +59,14 @@ export function Users() {
                 }
             });
             // Reset page if filter changes (unless page is explicitly updated)
-            if (!newParams.page && (newParams.search !== undefined || newParams.role !== undefined)) {
+            if (
+                !newParams.page &&
+                (newParams.search !== undefined ||
+                    newParams.role !== undefined ||
+                    newParams.sortBy !== undefined ||
+                    newParams.order !== undefined ||
+                    newParams.limit !== undefined)
+            ) {
                 next.set("page", "1");
             }
             return next;
@@ -124,6 +135,16 @@ export function Users() {
                             <option value="teamMember">Team Member</option>
                         </select>
                     </div>
+                    <select
+                        className="w-24 px-3 py-2 bg-white border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all text-sm"
+                        value={limit}
+                        onChange={(e) => updateUrlParams({ limit: Number(e.target.value) })}
+                    >
+                        <option value={5}>5</option>
+                        <option value={10}>10</option>
+                        <option value={25}>25</option>
+                        <option value={50}>50</option>
+                    </select>
                     <button
                         onClick={handleCreate}
                         className="flex items-center gap-2 px-4 py-2 bg-primary hover:bg-primary-dark text-white rounded-xl transition-all shadow-sm shadow-primary/20 whitespace-nowrap text-sm font-medium"
@@ -154,25 +175,32 @@ export function Users() {
             />
 
             {/* Pagination Controls */}
-            {!isLoading && totalPages > 1 && (
-                <div className="flex justify-center items-center gap-4 mt-6">
-                    <button
-                        onClick={() => updateUrlParams({ page: page - 1 })}
-                        disabled={page === 1}
-                        className="p-2 rounded-lg border border-gray-200 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-                    >
-                        <MdChevronLeft className="text-xl" />
-                    </button>
-                    <span className="text-sm font-medium text-text-muted-light">
-                        Page {page} of {totalPages}
+            {!isLoading && total > 0 && (
+                <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mt-6">
+                    <span className="text-sm text-text-muted-light">
+                        Showing {users.length} of {total} users
                     </span>
-                    <button
-                        onClick={() => updateUrlParams({ page: page + 1 })}
-                        disabled={page === totalPages}
-                        className="p-2 rounded-lg border border-gray-200 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-                    >
-                        <MdChevronRight className="text-xl" />
-                    </button>
+                    {totalPages > 1 && (
+                        <div className="flex justify-center items-center gap-4">
+                            <button
+                                onClick={() => updateUrlParams({ page: page - 1 })}
+                                disabled={page === 1}
+                                className="p-2 rounded-lg border border-gray-200 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                            >
+                                <MdChevronLeft className="text-xl" />
+                            </button>
+                            <span className="text-sm font-medium text-text-muted-light">
+                                Page {page} of {totalPages}
+                            </span>
+                            <button
+                                onClick={() => updateUrlParams({ page: page + 1 })}
+                                disabled={page === totalPages}
+                                className="p-2 rounded-lg border border-gray-200 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                            >
+                                <MdChevronRight className="text-xl" />
+                            </button>
+                        </div>
+                    )}
                 </div>
             )}
 

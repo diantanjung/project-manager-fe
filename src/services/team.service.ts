@@ -1,5 +1,5 @@
 import { api } from "../lib/axios";
-import type { Team, CreateTeamData, UpdateTeamData } from "../types/team";
+import type { Team, TeamMember, CreateTeamData, UpdateTeamData } from "../types/team";
 import type { ApiResource, PaginatedResource } from "../types/api";
 import { unwrapResource, withPaginationFallback } from "../types/api";
 
@@ -10,6 +10,43 @@ export interface TeamQueryParams {
     sortBy?: string;
     order?: "asc" | "desc";
 }
+
+type TeamMemberResponse = {
+    id: number;
+    name?: string;
+    email?: string;
+    userId?: number;
+    user_id?: number;
+    userName?: string;
+    user_name?: string;
+    userEmail?: string;
+    user_email?: string;
+    role?: string;
+    joinedAt?: string;
+    joined_at?: string;
+    membership?: {
+        role?: string;
+        joinedAt?: string;
+        joined_at?: string;
+    };
+};
+
+const unwrapTeamMembers = (resource: TeamMemberResponse[] | { data: TeamMemberResponse[] }) => {
+    if (Array.isArray(resource)) {
+        return resource;
+    }
+
+    return resource.data;
+};
+
+const toTeamMember = (member: TeamMemberResponse): TeamMember => ({
+    id: member.id,
+    userId: member.userId ?? member.user_id ?? member.id,
+    userName: member.userName ?? member.user_name ?? member.name ?? "",
+    userEmail: member.userEmail ?? member.user_email ?? member.email ?? "",
+    role: member.role ?? member.membership?.role ?? "member",
+    joinedAt: member.joinedAt ?? member.joined_at ?? member.membership?.joinedAt ?? member.membership?.joined_at ?? "",
+});
 
 export const teamService = {
     getAllTeams: async (params?: TeamQueryParams) => {
@@ -37,12 +74,12 @@ export const teamService = {
     },
 
     getTeamMembers: async (id: number) => {
-        const response = await api.get(`/teams/${id}/members`);
-        return response.data;
+        const response = await api.get<TeamMemberResponse[] | { data: TeamMemberResponse[] }>(`/teams/${id}/members`);
+        return unwrapTeamMembers(response.data).map(toTeamMember);
     },
 
     addTeamMember: async (teamId: number, userId: number, role: string = "member") => {
-        const response = await api.post(`/teams/${teamId}/members`, { userId, role });
+        const response = await api.post(`/teams/${teamId}/members`, { user_id: userId, role });
         return response.data;
     },
 

@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback } from "react";
 import { useSearchParams } from "react-router";
 import { useTeamStore } from "../../stores/teamStore";
+import { useDebouncedValue } from "../../hooks/useDebouncedValue";
 
 import { TeamList } from "../../components/teams/TeamList";
 import { TeamDialog } from "../../components/teams/TeamDialog";
@@ -24,6 +25,8 @@ export function Teams() {
     } = useTeamStore();
 
     const [searchParams, setSearchParams] = useSearchParams();
+    const searchFromParams = searchParams.get("search") || "";
+    const [searchInput, setSearchInput] = useState(searchFromParams);
 
     // Sync URL -> Store
     useEffect(() => {
@@ -42,7 +45,11 @@ export function Teams() {
         });
     }, [searchParams, setParams]);
 
-    const updateUrlParams = (newParams: Record<string, string | number | undefined>) => {
+    useEffect(() => {
+        setSearchInput(searchFromParams);
+    }, [searchFromParams]);
+
+    const updateUrlParams = useCallback((newParams: Record<string, string | number | undefined>) => {
         setSearchParams((prev) => {
             const next = new URLSearchParams(prev);
             Object.entries(newParams).forEach(([key, value]) => {
@@ -58,7 +65,15 @@ export function Teams() {
             }
             return next;
         });
-    };
+    }, [setSearchParams]);
+
+    const debouncedSearch = useDebouncedValue(searchInput, 500);
+
+    useEffect(() => {
+        if (debouncedSearch !== searchFromParams) {
+            updateUrlParams({ search: debouncedSearch });
+        }
+    }, [debouncedSearch, searchFromParams, updateUrlParams]);
 
     const [isDialogOpen, setIsDialogOpen] = useState(false);
     const [editingTeam, setEditingTeam] = useState<Team | null>(null);
@@ -112,8 +127,8 @@ export function Teams() {
                             type="text"
                             placeholder="Search teams..."
                             className="w-64 pl-10 pr-4 py-2 bg-white border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all text-sm"
-                            value={filters.search || ""}
-                            onChange={(e) => updateUrlParams({ search: e.target.value })}
+                            value={searchInput}
+                            onChange={(e) => setSearchInput(e.target.value)}
                         />
                     </div>
                     <button

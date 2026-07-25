@@ -1,5 +1,6 @@
 import { useEffect } from "react";
 import { useForm, type SubmitHandler } from "react-hook-form";
+import { Modal } from "../shared/Modal";
 import type { Team, CreateTeamData, UpdateTeamData } from "../../types/team";
 
 interface TeamDialogProps {
@@ -48,30 +49,19 @@ export function TeamDialog({ isOpen, onClose, onSubmit, team, error }: TeamDialo
         }
     };
 
-    if (!isOpen) return null;
-
     return (
-        <div
-            className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm"
-            onClick={onClose}
+        <Modal
+            isOpen={isOpen}
+            onClose={onClose}
+            title={team ? "Edit Team" : "Create New Team"}
         >
-            <div
-                className="bg-white rounded-2xl w-full max-w-md shadow-2xl animate-in fade-in zoom-in duration-200"
-                onClick={(e) => e.stopPropagation()}
-            >
-                <div className="flex items-center justify-between p-6 border-b border-gray-100">
-                    <h2 className="text-xl font-bold text-text-main-light">
-                        {team ? "Edit Team" : "Create New Team"}
-                    </h2>
+            {error && (
+                <div className="mb-4 p-3 bg-red-50 border border-red-100 text-red-600 text-sm rounded-lg flex items-start gap-2">
+                    <span>⚠️ {error}</span>
                 </div>
+            )}
 
-                {error && (
-                    <div className="mx-6 mt-6 p-3 bg-red-50 border border-red-100 text-red-600 text-sm rounded-lg flex items-start gap-2">
-                        <span>⚠️ {error}</span>
-                    </div>
-                )}
-
-                <form onSubmit={handleSubmit(onFormSubmit)} className="p-6 space-y-4">
+            <form onSubmit={handleSubmit(onFormSubmit)} className="space-y-4">
                     <div>
                         <label className="block text-sm font-medium text-text-main-light mb-1.5">
                             Team Name
@@ -126,8 +116,7 @@ export function TeamDialog({ isOpen, onClose, onSubmit, team, error }: TeamDialo
                                     : "Create Team"}
                         </button>
                     </div>
-                </form>
-            </div>
-        </div>
+            </form>
+        </Modal>
     );
 }

@@ -3,9 +3,10 @@ import Select from "react-select";
 import { MdAdd, MdDelete, MdPerson } from "react-icons/md";
 import { teamService } from "../../services/team.service";
 import { userService } from "../../services/user.service";
-import type { Team } from "../../types/team";
+import type { Team, TeamMember } from "../../types/team";
 import type { User } from "../../types/auth";
 import { getApiErrorMessage } from "../../utils/apiError";
+import { Modal } from "../shared/Modal";
 
 interface UserOption {
     value: number;
@@ -16,15 +17,6 @@ interface TeamMembersDialogProps {
     isOpen: boolean;
     onClose: () => void;
     team: Team | null;
-}
-
-interface TeamMember {
-    id: number;
-    userId: number;
-    userName: string;
-    userEmail: string;
-    role: string;
-    joinedAt: string;
 }
 
 export function TeamMembersDialog({
@@ -100,7 +92,7 @@ export function TeamMembersDialog({
         }
     };
 
-    if (!isOpen || !team) return null;
+    if (!team) return null;
 
     // Filter out users who are already members and convert to options
     const userOptions: UserOption[] = availableUsers
@@ -111,36 +103,27 @@ export function TeamMembersDialog({
         }));
 
     return (
-        <div
-            className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm"
-            onClick={onClose}
+        <Modal
+            isOpen={isOpen}
+            onClose={onClose}
+            title="Manage Members"
+            subtitle={`Add or remove members for ${team.name}`}
+            maxWidthClassName="max-w-lg"
+            panelClassName="overflow-hidden flex flex-col max-h-[90vh]"
+            contentClassName="p-6 overflow-y-auto flex-1"
         >
-            <div
-                className="bg-white rounded-2xl shadow-xl w-full max-w-lg overflow-hidden flex flex-col max-h-[90vh]"
-                onClick={(e) => e.stopPropagation()}
-            >
-                <div className="p-6 border-b border-gray-100 flex items-center justify-between">
-                    <div>
-                        <h2 className="text-xl font-bold text-gray-900">Manage Members</h2>
-                        <p className="text-sm text-gray-500 mt-1">
-                            Add or remove members for {team.name}
-                        </p>
-                    </div>
+            {error && (
+                <div className="mb-4 p-3 bg-red-50 text-red-600 rounded-lg text-sm">
+                    {error}
                 </div>
-
-                <div className="p-6 overflow-y-auto flex-1">
-                    {error && (
-                        <div className="mb-4 p-3 bg-red-50 text-red-600 rounded-lg text-sm">
-                            {error}
-                        </div>
-                    )}
+            )}
 
                     {/* Add Member Section */}
                     <div className="mb-6 bg-gray-50 p-4 rounded-xl border border-gray-100">
                         <label className="block text-sm font-medium text-gray-700 mb-2">
                             Add New Member
                         </label>
-                        <div className="flex gap-2">
+                        <div className="flex flex-col gap-2 sm:flex-row">
                             <Select
                                 value={selectedUser}
                                 onChange={(option) => setSelectedUser(option)}
@@ -148,8 +131,10 @@ export function TeamMembersDialog({
                                 isDisabled={isLoading}
                                 isClearable
                                 isSearchable
+                                menuPortalTarget={document.body}
+                                menuPosition="fixed"
                                 placeholder="Select a user..."
-                                className="flex-1 text-sm"
+                                className="min-w-0 flex-1 text-sm"
                                 classNames={{
                                     control: (state) =>
                                         `!border-gray-200 !rounded-lg !min-h-[38px] ${state.isFocused ? '!border-primary !ring-2 !ring-primary/20 !shadow-none' : ''}`,
@@ -158,12 +143,15 @@ export function TeamMembersDialog({
                                     placeholder: () => '!text-gray-400',
                                     singleValue: () => '!text-gray-900',
                                 }}
+                                styles={{
+                                    menuPortal: (base) => ({ ...base, zIndex: 60 }),
+                                }}
                             />
 
                             <button
                                 onClick={handleAddMember}
                                 disabled={!selectedUser || isLoading}
-                                className="px-4 py-2 bg-primary text-white rounded-lg text-sm font-medium hover:bg-primary-dark disabled:opacity-50 disabled:cursor-not-allowed transition-colors cursor-pointer flex items-center gap-1"
+                                className="inline-flex items-center justify-center gap-1 rounded-lg bg-primary px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-primary-dark disabled:cursor-not-allowed disabled:opacity-50 sm:shrink-0"
                             >
                                 <MdAdd className="text-lg" />
                                 Add
@@ -216,17 +204,6 @@ export function TeamMembersDialog({
                             </div>
                         )}
                     </div>
-                </div>
-
-                <div className="p-6 border-t border-gray-100 bg-gray-50/50">
-                    <button
-                        onClick={onClose}
-                        className="w-full py-2.5 bg-white border border-gray-200 text-gray-700 font-medium rounded-xl hover:bg-gray-50 hover:text-gray-900 transition-colors shadow-sm cursor-pointer"
-                    >
-                        Close
-                    </button>
-                </div>
-            </div>
-        </div>
+        </Modal>
     );
 }

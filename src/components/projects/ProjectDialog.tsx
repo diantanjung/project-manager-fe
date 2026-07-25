@@ -3,6 +3,7 @@ import { useForm, type SubmitHandler } from "react-hook-form";
 import type { Team } from "../../types/team";
 import { teamService } from "../../services/team.service";
 import type { CreateProjectData } from "../../types/project";
+import { Modal } from "../shared/Modal";
 
 interface ProjectDialogProps {
     isOpen: boolean;
@@ -58,24 +59,13 @@ export function ProjectDialog({ isOpen, onClose, onSubmit }: ProjectDialogProps)
         onClose();
     };
 
-    if (!isOpen) return null;
-
     return (
-        <div
-            className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm"
-            onClick={onClose}
+        <Modal
+            isOpen={isOpen}
+            onClose={onClose}
+            title="Create New Project"
         >
-            <div
-                className="bg-white rounded-2xl w-full max-w-md shadow-2xl animate-in fade-in zoom-in duration-200"
-                onClick={(e) => e.stopPropagation()}
-            >
-                <div className="flex items-center justify-between p-6 border-b border-gray-100">
-                    <h2 className="text-xl font-bold text-text-main-light">
-                        Create New Project
-                    </h2>
-                </div>
-
-                <form onSubmit={handleSubmit(onFormSubmit)} className="p-6 space-y-4">
+            <form onSubmit={handleSubmit(onFormSubmit)} className="space-y-4">
                     <div>
                         <label className="block text-sm font-medium text-text-main-light mb-1.5">
                             Project Name
@@ -153,8 +143,7 @@ export function ProjectDialog({ isOpen, onClose, onSubmit }: ProjectDialogProps)
                             {isSubmitting ? "Creating..." : "Create Project"}
                         </button>
                     </div>
-                </form>
-            </div>
-        </div>
+            </form>
+        </Modal>
     );
 }

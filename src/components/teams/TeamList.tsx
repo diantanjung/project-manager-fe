@@ -49,13 +49,8 @@ export function TeamList({ teams, onEdit, onDelete, onManageMembers, isLoading, 
                     {Array.isArray(teams) && teams.map((team) => (
                         <tr key={team.id} className="hover:bg-gray-50/50 transition-colors">
                             <td className="px-6 py-4">
-                                <div className="flex items-center gap-3">
-                                    <div className="h-9 w-9 rounded-lg bg-gradient-to-tr from-blue-500 to-cyan-400 flex items-center justify-center text-white font-bold text-sm">
-                                        {team.name.charAt(0).toUpperCase()}
-                                    </div>
-                                    <div className="font-medium text-text-main-light">
-                                        {team.name}
-                                    </div>
+                                <div className="font-medium text-text-main-light">
+                                    {team.name}
                                 </div>
                             </td>
                             <td className="px-6 py-4">

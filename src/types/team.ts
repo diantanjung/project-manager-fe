@@ -6,6 +6,15 @@ export interface Team {
     updatedAt: string;
 }
 
+export interface TeamMember {
+    id: number;
+    userId: number;
+    userName: string;
+    userEmail: string;
+    role: string;
+    joinedAt: string;
+}
+
 export interface CreateTeamData {
     name: string;
     description?: string;

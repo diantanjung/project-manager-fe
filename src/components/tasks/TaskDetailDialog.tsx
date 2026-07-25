@@ -7,6 +7,7 @@ import { useAttachmentStore } from "../../stores/attachmentStore";
 import { TaskDialog } from "./TaskDialog";
 import { MdAttachFile, MdDownload, MdInsertDriveFile } from "react-icons/md";
 import { getFullAvatarUrl } from "../../utils/avatar";
+import { Modal } from "../shared/Modal";
 
 interface TaskDetailDialogProps {
     isOpen: boolean;
@@ -93,21 +94,18 @@ export function TaskDetailDialog({ isOpen, onClose, task, projectId }: TaskDetai
         }
     };
 
-    if (!isOpen) return null;
-
     return (
-        <div
-            className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4"
-            onClick={onClose}
+        <Modal
+            isOpen={isOpen}
+            onClose={onClose}
+            aria-label="Task details"
+            maxWidthClassName="max-w-4xl"
+            panelClassName="overflow-hidden flex flex-col md:flex-row h-[80vh]"
+            contentClassName="contents"
         >
-            <div
-                className="w-full max-w-4xl bg-white rounded-2xl shadow-2xl overflow-hidden flex flex-col md:flex-row h-[80vh] animate-in fade-in zoom-in-95 duration-200"
-                onClick={(e) => e.stopPropagation()}
-            >
-
-                {/* Left: Task Details */}
-                <div className="flex-1 flex flex-col border-r border-gray-100 overflow-y-auto">
-                    <div className="p-6">
+            {/* Left: Task Details */}
+            <div className="flex-1 flex flex-col border-r border-gray-100 overflow-y-auto">
+                <div className="p-6">
                         <div className="flex justify-between items-start mb-4">
                             <div className="flex items-center gap-2">
                                 <span className={`text-xs font-bold px-2 py-0.5 rounded uppercase ${getPriorityColor(task.priority)}`}>
@@ -218,11 +216,11 @@ export function TaskDetailDialog({ isOpen, onClose, task, projectId }: TaskDetai
                                 </div>
                             )}
                         </div>
-                    </div>
                 </div>
+            </div>
 
-                {/* Right: Comments */}
-                <div className="w-full md:w-[400px] flex flex-col bg-gray-50/50">
+            {/* Right: Comments */}
+            <div className="w-full md:w-[400px] flex flex-col bg-gray-50/50">
                     <div className="p-4 border-b border-gray-100 flex items-center justify-between bg-white">
                         <h3 className="font-semibold text-gray-800">Comments</h3>
                     </div>
@@ -292,7 +290,6 @@ export function TaskDetailDialog({ isOpen, onClose, task, projectId }: TaskDetai
                             </button>
                         </form>
                     </div>
-                </div>
             </div>
 
             <TaskDialog
@@ -301,6 +298,6 @@ export function TaskDetailDialog({ isOpen, onClose, task, projectId }: TaskDetai
                 projectId={projectId}
                 task={task}
             />
-        </div>
+        </Modal>
     );
 }

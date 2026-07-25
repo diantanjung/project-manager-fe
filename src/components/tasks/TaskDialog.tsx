@@ -16,6 +16,7 @@ import { useEffect, useMemo } from "react";
 import { useUserStore } from "../../stores/userStore";
 import { useAttachmentStore } from "../../stores/attachmentStore";
 import { MdAttachFile } from "react-icons/md";
+import { Modal } from "../shared/Modal";
 
 interface TaskDialogProps {
     isOpen: boolean;
@@ -109,8 +110,6 @@ export function TaskDialog({ isOpen, onClose, projectId, task, defaultStatus }: 
         }
     }, [task, isOpen, reset, userOptions, defaultStatus]);
 
-    if (!isOpen) return null;
-
     const onSubmit = async (data: TaskFormValues) => {
         try {
             const payload: CreateTaskData = {
@@ -145,21 +144,14 @@ export function TaskDialog({ isOpen, onClose, projectId, task, defaultStatus }: 
     };
 
     return (
-        <div
-            className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm"
-            onClick={onClose}
+        <Modal
+            isOpen={isOpen}
+            onClose={onClose}
+            title={task ? "Edit Task" : "Create New Task"}
+            maxWidthClassName="max-w-lg"
+            panelClassName="overflow-hidden"
         >
-            <div
-                className="w-full max-w-lg bg-white rounded-xl shadow-2xl overflow-hidden animate-in fade-in zoom-in-95 duration-200"
-                onClick={(e) => e.stopPropagation()}
-            >
-                <div className="px-6 py-4 border-b border-gray-100 flex items-center justify-between">
-                    <h2 className="text-lg font-bold text-gray-800">
-                        {task ? "Edit Task" : "Create New Task"}
-                    </h2>
-                </div>
-
-                <form onSubmit={handleSubmit(onSubmit)} className="p-6 space-y-4">
+            <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
                     <div>
                         <label className="block text-sm font-medium text-gray-700 mb-1">
                             Title
@@ -285,8 +277,7 @@ export function TaskDialog({ isOpen, onClose, projectId, task, defaultStatus }: 
                             {task ? "Save Changes" : "Create Task"}
                         </button>
                     </div>
-                </form>
-            </div>
-        </div>
+            </form>
+        </Modal>
     );
 }

@@ -5,11 +5,17 @@ import { useAuthStore } from "./authStore";
 
 interface TaskState {
     tasks: Task[];
+    total: number;
+    page: number;
+    totalPages: number;
+    limit: number;
+    filters: TaskQueryParams;
     isLoading: boolean;
     error: string | null;
 
     // Actions
     fetchTasks: (projectId: number, params?: TaskQueryParams) => Promise<void>;
+    setParams: (params: { page?: number; limit?: number; filters?: TaskQueryParams }) => void;
     createTask: (data: CreateTaskData) => Promise<Task | undefined>;
     updateTask: (id: number, data: UpdateTaskData) => Promise<Task | undefined>;
     deleteTask: (id: number) => Promise<void>;
@@ -18,6 +24,11 @@ interface TaskState {
 
 export const useTaskStore = create<TaskState>((set, get) => ({
     tasks: [],
+    total: 0,
+    page: 1,
+    totalPages: 1,
+    limit: 10,
+    filters: {},
     isLoading: false,
     error: null,
 
@@ -25,14 +36,29 @@ export const useTaskStore = create<TaskState>((set, get) => ({
         set({ isLoading: true, error: null });
         try {
             const response = await taskService.getTasks(projectId, params);
-            // Assuming response has data property which is the array of tasks
-            set({ tasks: response.data, isLoading: false });
+            set({
+                tasks: response.data,
+                total: response.pagination.totalItems,
+                page: response.pagination.page,
+                totalPages: response.pagination.totalPages,
+                limit: response.pagination.limit,
+                filters: params ?? {},
+                isLoading: false,
+            });
         } catch (err: unknown) {
             const message =
                 // eslint-disable-next-line
                 (err as any).response?.data?.message || "Failed to fetch tasks";
             set({ error: message, isLoading: false });
         }
+    },
+
+    setParams: ({ page, limit, filters }) => {
+        set((state) => ({
+            page: page ?? state.page,
+            limit: limit ?? state.limit,
+            filters: { ...state.filters, ...filters },
+        }));
     },
 
     createTask: async (data) => {

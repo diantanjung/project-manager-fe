@@ -2,6 +2,7 @@ export interface Attachment {
     id: number;
     fileName: string;
     fileUrl: string;
+    downloadUrl?: string;
     fileSize: number | null;
     mimeType: string;
     taskId: number;

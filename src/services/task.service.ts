@@ -1,6 +1,6 @@
 import { api } from "../lib/axios";
 import type { Task, CreateTaskData, UpdateTaskData, TaskQueryParams } from "../types/task";
-import type { ApiResource } from "../types/api";
+import type { ApiResource, PaginatedResource } from "../types/api";
 import { unwrapResource, withPaginationFallback } from "../types/api";
 
 const toTaskPayload = (data: CreateTaskData | UpdateTaskData) => ({
@@ -23,11 +23,29 @@ const normalizeTask = (task: Task): Task => ({
 
 export const taskService = {
     getTasks: async (projectId: number, params?: TaskQueryParams) => {
-        const response = await api.get<{ data: Task[]; pagination?: undefined }>("/tasks", { params });
-        const tasks = response.data.data
-            .filter((task) => task.projectId === projectId)
-            .map(normalizeTask);
-        return withPaginationFallback({ data: tasks }, params?.limit);
+        const response = await api.get<PaginatedResource<Task> | { data: Task[] }>("/tasks", {
+            params: {
+                ...params,
+                project_id: projectId,
+                projectId,
+            },
+        });
+        const pagination = "pagination" in response.data ? response.data.pagination : undefined;
+        const normalizedTasks = response.data.data.map(normalizeTask);
+        const tasks = normalizedTasks.filter((task) => task.projectId === projectId);
+        const hasOutOfProjectTasks = tasks.length !== normalizedTasks.length;
+
+        return withPaginationFallback({
+            ...response.data,
+            data: tasks,
+            pagination: pagination && hasOutOfProjectTasks
+                ? {
+                    ...pagination,
+                    totalItems: tasks.length,
+                    totalPages: Math.max(1, Math.ceil(tasks.length / pagination.limit)),
+                }
+                : pagination,
+        }, params?.limit);
     },
 
     createTask: async (data: CreateTaskData) => {

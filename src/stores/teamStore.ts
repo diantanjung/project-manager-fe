@@ -17,7 +17,7 @@ interface TeamState {
     // Actions
     fetchTeams: () => Promise<void>;
     setFilters: (filters: Partial<TeamQueryParams>) => void;
-    setParams: (params: { page?: number; filters?: TeamQueryParams }) => void;
+    setParams: (params: { page?: number; limit?: number; filters?: TeamQueryParams }) => void;
     createTeam: (data: CreateTeamData) => Promise<Team | undefined>;
     updateTeam: (id: number, data: UpdateTeamData) => Promise<Team | undefined>;
     deleteTeam: (id: number) => Promise<void>;
@@ -60,9 +60,10 @@ export const useTeamStore = create<TeamState>((set, get) => ({
         get().fetchTeams();
     },
 
-    setParams: ({ page, filters }) => {
+    setParams: ({ page, limit, filters }) => {
         set((state) => ({
             page: page ?? state.page,
+            limit: limit ?? state.limit,
             filters: { ...state.filters, ...filters },
         }));
         get().fetchTeams();

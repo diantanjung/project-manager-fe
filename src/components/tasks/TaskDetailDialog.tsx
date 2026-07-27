@@ -1,9 +1,11 @@
 import { useEffect, useState } from "react";
 import { MdCalendarToday, MdSend, MdDelete } from "react-icons/md";
 import type { Task } from "../../types/task";
+import type { Attachment } from "../../types/attachment";
 import { useCommentStore } from "../../stores/commentStore";
 import { useAuthStore } from "../../stores/authStore";
 import { useAttachmentStore } from "../../stores/attachmentStore";
+import { attachmentService } from "../../services/attachment.service";
 import { TaskDialog } from "./TaskDialog";
 import { MdAttachFile, MdDownload, MdInsertDriveFile } from "react-icons/md";
 import { getFullAvatarUrl } from "../../utils/avatar";
@@ -73,6 +75,23 @@ export function TaskDetailDialog({ isOpen, onClose, task, projectId }: TaskDetai
     const handleDeleteAttachment = async (id: number) => {
         if (window.confirm("Delete this attachment?")) {
             await deleteAttachment(id);
+        }
+    };
+
+    const handleDownloadAttachment = async (attachment: Attachment) => {
+        try {
+            const blob = await attachmentService.downloadAttachment(attachment);
+            const url = URL.createObjectURL(blob);
+            const link = document.createElement("a");
+
+            link.href = url;
+            link.download = attachment.fileName;
+            document.body.appendChild(link);
+            link.click();
+            link.remove();
+            URL.revokeObjectURL(url);
+        } catch (error) {
+            console.error("Failed to download attachment", error);
         }
     };
 
@@ -191,16 +210,15 @@ export function TaskDetailDialog({ isOpen, onClose, task, projectId }: TaskDetai
                                                     </span>
                                                 </div>
                                             </div>
-                                            <div className="flex items-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                                                <a
-                                                    href={attachment.fileUrl}
-                                                    target="_blank"
-                                                    rel="noopener noreferrer"
-                                                    className="p-1.5 text-gray-400 hover:text-primary hover:bg-white rounded-md transition-colors"
+                                            <div className="flex items-center gap-2 opacity-100 transition-opacity">
+                                                <button
+                                                    type="button"
+                                                    onClick={() => handleDownloadAttachment(attachment)}
+                                                    className="p-1.5 text-gray-500 hover:text-primary hover:bg-white rounded-md transition-colors"
                                                     title="Download"
                                                 >
                                                     <MdDownload />
-                                                </a>
+                                                </button>
                                                 {user?.id === attachment.uploaderId && (
                                                     <button
                                                         onClick={() => handleDeleteAttachment(attachment.id)}

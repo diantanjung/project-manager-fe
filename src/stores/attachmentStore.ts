@@ -37,7 +37,7 @@ export const useAttachmentStore = create<AttachmentState>((set) => ({
             if (!user) {
                 throw new Error("You must be logged in to upload an attachment.");
             }
-            const newAttachment = await attachmentService.uploadAttachment(taskId, file, user.id);
+            const newAttachment = await attachmentService.uploadAttachment(taskId, file);
             set((state) => ({
                 attachments: [...state.attachments, newAttachment],
                 isLoading: false,

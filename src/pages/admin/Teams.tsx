@@ -6,8 +6,10 @@ import { useDebouncedValue } from "../../hooks/useDebouncedValue";
 import { TeamList } from "../../components/teams/TeamList";
 import { TeamDialog } from "../../components/teams/TeamDialog";
 import type { Team, CreateTeamData, UpdateTeamData } from "../../types/team";
-import { MdAdd, MdSearch, MdChevronLeft, MdChevronRight } from "react-icons/md";
+import { MdAdd } from "react-icons/md";
 import { TeamMembersDialog } from "../../components/teams/TeamMembersDialog";
+
+const TEAM_PAGE_SIZE_OPTIONS = [5, 10, 25, 50];
 
 export function Teams() {
     const {
@@ -16,6 +18,8 @@ export function Teams() {
         error,
         page,
         totalPages,
+        total,
+        limit,
         filters,
         setParams,
         createTeam,
@@ -31,12 +35,14 @@ export function Teams() {
     // Sync URL -> Store
     useEffect(() => {
         const pageFromUrl = Number(searchParams.get("page")) || 1;
+        const limitFromUrl = Number(searchParams.get("limit")) || 10;
         const searchFromUrl = searchParams.get("search") || undefined;
         const sortByFromUrl = searchParams.get("sortBy") || undefined;
         const orderFromUrl = (searchParams.get("order") as "asc" | "desc") || undefined;
 
         setParams({
             page: pageFromUrl,
+            limit: limitFromUrl,
             filters: {
                 search: searchFromUrl,
                 sortBy: sortByFromUrl,
@@ -60,7 +66,13 @@ export function Teams() {
                 }
             });
             // Reset page if filter changes (unless page is explicitly updated)
-            if (!newParams.page && newParams.search !== undefined) {
+            if (
+                !newParams.page &&
+                (newParams.search !== undefined ||
+                    newParams.sortBy !== undefined ||
+                    newParams.order !== undefined ||
+                    newParams.limit !== undefined)
+            ) {
                 next.set("page", "1");
             }
             return next;
@@ -121,16 +133,6 @@ export function Teams() {
                     <p className="text-text-muted-light text-sm">Manage teams and their descriptions</p>
                 </div>
                 <div className="flex items-center gap-3">
-                    <div className="relative">
-                        <MdSearch className="absolute left-3 top-1/2 -translate-y-1/2 text-text-muted-light text-xl" />
-                        <input
-                            type="text"
-                            placeholder="Search teams..."
-                            className="w-64 pl-10 pr-4 py-2 bg-white border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all text-sm"
-                            value={searchInput}
-                            onChange={(e) => setSearchInput(e.target.value)}
-                        />
-                    </div>
                     <button
                         onClick={handleCreate}
                         className="flex items-center gap-2 px-4 py-2 bg-primary hover:bg-primary-dark text-white rounded-xl transition-all shadow-sm shadow-primary/20 whitespace-nowrap text-sm font-medium"
@@ -159,30 +161,16 @@ export function Teams() {
                     const order = filters.sortBy === field && filters.order === "asc" ? "desc" : "asc";
                     updateUrlParams({ sortBy: field, order });
                 }}
+                searchValue={searchInput}
+                onSearchChange={setSearchInput}
+                page={page}
+                totalPages={totalPages}
+                totalItems={total}
+                pageSize={limit}
+                pageSizeOptions={TEAM_PAGE_SIZE_OPTIONS}
+                onPageChange={(nextPage) => updateUrlParams({ page: nextPage })}
+                onPageSizeChange={(value) => updateUrlParams({ limit: value })}
             />
-
-            {/* Pagination Controls */}
-            {!isLoading && totalPages > 1 && (
-                <div className="flex justify-center items-center gap-4 mt-6">
-                    <button
-                        onClick={() => updateUrlParams({ page: page - 1 })}
-                        disabled={page === 1}
-                        className="p-2 rounded-lg border border-gray-200 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-                    >
-                        <MdChevronLeft className="text-xl" />
-                    </button>
-                    <span className="text-sm font-medium text-text-muted-light">
-                        Page {page} of {totalPages}
-                    </span>
-                    <button
-                        onClick={() => updateUrlParams({ page: page + 1 })}
-                        disabled={page === totalPages}
-                        className="p-2 rounded-lg border border-gray-200 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-                    >
-                        <MdChevronRight className="text-xl" />
-                    </button>
-                </div>
-            )}
 
             <TeamDialog
                 isOpen={isDialogOpen}

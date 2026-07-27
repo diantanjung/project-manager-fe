@@ -33,6 +33,8 @@ vi.mock("../../stores/teamStore", () => ({
         page: 1,
         totalPages: 1,
         filters: {},
+        total: 0,
+        limit: 10,
         setParams: teamSetParams,
         createTeam: vi.fn(),
         updateTeam: vi.fn(),
@@ -42,7 +44,14 @@ vi.mock("../../stores/teamStore", () => ({
 }));
 
 vi.mock("../../components/users/UserList", () => ({
-    UserList: () => <div data-testid="user-list" />,
+    UserList: ({ searchValue, onSearchChange }: { searchValue: string; onSearchChange: (value: string) => void }) => (
+        <input
+            aria-label="Search users"
+            placeholder="Search users..."
+            value={searchValue}
+            onChange={(event) => onSearchChange(event.target.value)}
+        />
+    ),
 }));
 
 vi.mock("../../components/users/UserDialog", () => ({
@@ -50,7 +59,14 @@ vi.mock("../../components/users/UserDialog", () => ({
 }));
 
 vi.mock("../../components/teams/TeamList", () => ({
-    TeamList: () => <div data-testid="team-list" />,
+    TeamList: ({ searchValue, onSearchChange }: { searchValue: string; onSearchChange: (value: string) => void }) => (
+        <input
+            aria-label="Search teams"
+            placeholder="Search teams..."
+            value={searchValue}
+            onChange={(event) => onSearchChange(event.target.value)}
+        />
+    ),
 }));
 
 vi.mock("../../components/teams/TeamDialog", () => ({
@@ -139,6 +155,7 @@ describe("admin search debounce", () => {
         expect(teamSetParams).toHaveBeenCalledTimes(2);
         expect(teamSetParams).toHaveBeenLastCalledWith({
             page: 1,
+            limit: 10,
             filters: {
                 search: "pla",
                 sortBy: undefined,

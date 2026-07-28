@@ -9,12 +9,12 @@ import {
   MdAttachFile,
 } from "react-icons/md";
 import StatCard from "../components/shared/StatCard";
-import { projectService } from "../services/project.service";
-import { taskService } from "../services/task.service";
-import type { Project } from "../types/project";
+import { Skeleton } from "../components/shared/Loading";
+import { useDashboardStore } from "../stores/dashboardStore";
+import type { ActivityLog } from "../types/activity";
 import type { Task } from "../types/task";
 
-const PAGE_SIZE = 100;
+const DUE_SOON_DAYS = 7;
 const MS_PER_DAY = 24 * 60 * 60 * 1000;
 const PRIORITY_STYLES = {
   urgent: "bg-red-100 text-red-700",
@@ -44,33 +44,6 @@ const DASHBOARD_TABS = [
 
 type DashboardTab = typeof DASHBOARD_TABS[number]["id"];
 
-async function fetchAllProjects() {
-  const firstPage = await projectService.getAllProjects({ page: 1, limit: PAGE_SIZE });
-  const projects = [...firstPage.data];
-
-  for (let page = 2; page <= firstPage.pagination.totalPages; page += 1) {
-    const response = await projectService.getAllProjects({ page, limit: PAGE_SIZE });
-    projects.push(...response.data);
-  }
-
-  return {
-    projects,
-    total: firstPage.pagination.totalItems,
-  };
-}
-
-async function fetchAllTasksForProject(projectId: number) {
-  const firstPage = await taskService.getTasks(projectId, { page: 1, limit: PAGE_SIZE });
-  const tasks = [...firstPage.data];
-
-  for (let page = 2; page <= firstPage.pagination.totalPages; page += 1) {
-    const response = await taskService.getTasks(projectId, { page, limit: PAGE_SIZE });
-    tasks.push(...response.data);
-  }
-
-  return tasks;
-}
-
 function formatDate(value: string | null) {
   if (!value) return "-";
 
@@ -96,8 +69,8 @@ function getRelativeDate(value: string | null) {
   return `${diffDays} hari lagi`;
 }
 
-function getProjectName(projects: Project[], projectId: number) {
-  return projects.find((project) => project.id === projectId)?.name ?? `Project #${projectId}`;
+function getTaskProjectName(task: Task) {
+  return task.project?.name ?? `Project #${task.projectId}`;
 }
 
 function formatTaskStatus(status: Task["status"]) {
@@ -114,11 +87,9 @@ function EmptyTaskState({ label }: { label: string }) {
 
 function TaskPreviewCard({
   task,
-  projects,
   meta,
 }: {
   task: Task;
-  projects: Project[];
   meta?: React.ReactNode;
 }) {
   const accent = TASK_ACCENT_STYLES[task.priority ?? "none"];
@@ -137,7 +108,7 @@ function TaskPreviewCard({
               {task.title}
             </h3>
             <p className="text-sm text-text-muted-light mt-1 font-light truncate max-w-2xl">
-              {task.description || getProjectName(projects, task.projectId)}
+              {task.description || getTaskProjectName(task)}
             </p>
             <div className="flex flex-wrap items-center gap-3 mt-3">
               {task.priority && !isDone && (
@@ -176,7 +147,17 @@ function TaskPreviewCard({
   );
 }
 
-function LatestUpdates({ tasks, projects }: { tasks: Task[]; projects: Project[] }) {
+function formatActivityAction(action: string) {
+  return action.replace(/[._]/g, " ");
+}
+
+function getActivityEntityLabel(activity: ActivityLog) {
+  if (activity.entityType.includes("Task")) return `Task #${activity.entityId}`;
+  if (activity.entityType.includes("Project")) return `Project #${activity.entityId}`;
+  return `Item #${activity.entityId}`;
+}
+
+function LatestUpdates({ activities }: { activities: ActivityLog[] }) {
   return (
     <aside className="bg-white p-6 rounded-2xl border border-gray-100 shadow-sm">
       <div className="flex items-center justify-between mb-6">
@@ -184,33 +165,24 @@ function LatestUpdates({ tasks, projects }: { tasks: Task[]; projects: Project[]
         <button className="text-xs text-primary hover:underline">View All</button>
       </div>
 
-      {tasks.length === 0 ? (
+      {activities.length === 0 ? (
         <p className="text-sm text-text-muted-light text-center py-8">Belum ada update terbaru.</p>
       ) : (
         <div className="relative pl-4 border-l border-gray-200 space-y-6">
-          {tasks.map((task, index) => (
-            <div className="relative" key={task.id}>
+          {activities.map((activity, index) => (
+            <div className="relative" key={activity.id}>
               <div className={`absolute -left-[21px] top-1 h-3 w-3 rounded-full border-2 border-white ${index < 2 ? "bg-primary" : "bg-gray-300"}`} />
               <p className="text-sm text-text-main-light leading-snug">
-                <span className="font-bold">{task.title}</span> updated in{" "}
-                <span className="text-primary">{getProjectName(projects, task.projectId)}</span>.
+                <span className="font-bold">{activity.actor?.name ?? "System"}</span>{" "}
+                {formatActivityAction(activity.action)}{" "}
+                <span className="text-primary">{getActivityEntityLabel(activity)}</span>.
               </p>
-              {index === 1 && (
+              {index === 1 && activity.after && (
                 <div className="mt-2 p-3 bg-gray-50 rounded-lg text-sm text-text-muted-light border border-gray-100 leading-relaxed">
-                  "{task.description || "Latest task detail has been updated."}"
+                  "{Object.entries(activity.after).slice(0, 2).map(([key, value]) => `${key}: ${String(value)}`).join(", ")}"
                 </div>
               )}
-              <div className="mt-2 flex flex-wrap items-center gap-2">
-                <span className={`text-xs font-medium px-2 py-0.5 rounded ${STATUS_STYLES[task.status]}`}>
-                  {formatTaskStatus(task.status)}
-                </span>
-                {task.priority && (
-                  <span className={`text-xs font-medium px-2 py-0.5 rounded ${PRIORITY_STYLES[task.priority]}`}>
-                    {task.priority}
-                  </span>
-                )}
-              </div>
-              <p className="text-xs text-text-muted-light mt-2">{formatDate(task.updatedAt)}</p>
+              <p className="text-xs text-text-muted-light mt-2">{formatDate(activity.createdAt)}</p>
             </div>
           ))}
         </div>
@@ -219,100 +191,79 @@ function LatestUpdates({ tasks, projects }: { tasks: Task[]; projects: Project[]
   );
 }
 
+function DashboardSkeleton() {
+  return (
+    <div role="status" aria-label="Loading dashboard">
+      <section className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+        {Array.from({ length: 4 }, (_, index) => (
+          <div key={index} className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 h-40">
+            <div className="flex items-start justify-between">
+              <Skeleton className="h-4 w-28" />
+              <Skeleton className="h-8 w-8 rounded-md" />
+            </div>
+            <Skeleton className="h-10 w-20 mt-12" />
+            {index === 0 && <Skeleton className="h-1.5 w-full mt-4 rounded-full" />}
+          </div>
+        ))}
+      </section>
+
+      <div className="grid grid-cols-1 xl:grid-cols-[minmax(0,2.1fr)_minmax(320px,1fr)] gap-6">
+        <div className="space-y-6">
+          <div className="flex w-fit gap-2 rounded-xl border border-gray-100 bg-white p-1 shadow-sm">
+            <Skeleton className="h-8 w-28 rounded-lg" />
+            <Skeleton className="h-8 w-36 rounded-lg" />
+            <Skeleton className="h-8 w-28 rounded-lg" />
+          </div>
+          <div className="space-y-4">
+            {Array.from({ length: 3 }, (_, index) => (
+              <div key={index} className="bg-white p-5 rounded-xl border border-gray-100 min-h-28">
+                <Skeleton className="h-5 w-56" />
+                <Skeleton className="h-4 w-3/4 mt-3" />
+                <div className="flex gap-3 mt-4">
+                  <Skeleton className="h-5 w-20" />
+                  <Skeleton className="h-5 w-16" />
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+        <div className="bg-white p-6 rounded-2xl border border-gray-100 shadow-sm">
+          <Skeleton className="h-6 w-40 mb-8" />
+          <div className="space-y-6">
+            {Array.from({ length: 3 }, (_, index) => (
+              <div key={index}>
+                <Skeleton className="h-4 w-full" />
+                <Skeleton className="h-4 w-2/3 mt-2" />
+                <Skeleton className="h-3 w-20 mt-3" />
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 export function Dashboard() {
-  const [projects, setProjects] = useState<Project[]>([]);
-  const [projectTotal, setProjectTotal] = useState(0);
-  const [tasks, setTasks] = useState<Task[]>([]);
+  const {
+    summary,
+    isLoading,
+    isRefreshing,
+    error,
+    fetchDashboard,
+  } = useDashboardStore();
   const [activeTab, setActiveTab] = useState<DashboardTab>("recent");
-  const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    let isMounted = true;
-
-    async function loadDashboardData() {
-      setIsLoading(true);
-      setError(null);
-
-      try {
-        const projectResult = await fetchAllProjects();
-        const projectTasks = await Promise.all(
-          projectResult.projects.map((project) => fetchAllTasksForProject(project.id)),
-        );
-
-        if (!isMounted) return;
-
-        setProjects(projectResult.projects);
-        setProjectTotal(projectResult.total);
-        setTasks(projectTasks.flat());
-      } catch {
-        if (isMounted) {
-          setError("Dashboard belum bisa memuat data.");
-        }
-      } finally {
-        if (isMounted) {
-          setIsLoading(false);
-        }
-      }
-    }
-
-    loadDashboardData();
-
-    return () => {
-      isMounted = false;
-    };
-  }, []);
-
-  const stats = useMemo(() => {
-    const doneTasks = tasks.filter((task) => task.status === "done").length;
-    const overdueTasks = tasks.filter((task) => {
-      if (!task.dueDate || task.status === "done") return false;
-      return new Date(task.dueDate).getTime() < Date.now();
-    }).length;
-    const progress = tasks.length === 0 ? 0 : Math.round((doneTasks / tasks.length) * 100);
-
-    return {
-      doneTasks,
-      overdueTasks,
-      progress,
-    };
-  }, [tasks]);
-
-  const deadlineTasks = useMemo(() => (
-    tasks
-      .filter((task) => task.dueDate && task.status !== "done")
-      .sort((a, b) => new Date(a.dueDate ?? "").getTime() - new Date(b.dueDate ?? "").getTime())
-      .slice(0, 5)
-  ), [tasks]);
-
-  const recentTasks = useMemo(() => (
-    [...tasks]
-      .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
-      .slice(0, 3)
-  ), [tasks]);
-
-  const highPriorityTasks = useMemo(() => (
-    tasks
-      .filter((task) => task.priority === "high" || task.priority === "urgent")
-      .sort((a, b) => {
-        const prioritySort = Number(b.priority === "urgent") - Number(a.priority === "urgent");
-        if (prioritySort !== 0) return prioritySort;
-        return new Date(a.dueDate ?? a.updatedAt).getTime() - new Date(b.dueDate ?? b.updatedAt).getTime();
-      })
-      .slice(0, 5)
-  ), [tasks]);
-
-  const recentActivities = useMemo(() => (
-    [...tasks]
-      .sort((a, b) => new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime())
-      .slice(0, 5)
-  ), [tasks]);
+    fetchDashboard();
+  }, [fetchDashboard]);
 
   const activeTasks = useMemo(() => {
-    if (activeTab === "deadlines") return deadlineTasks.slice(0, 3);
-    if (activeTab === "priority") return highPriorityTasks.slice(0, 3);
-    return recentTasks;
-  }, [activeTab, deadlineTasks, highPriorityTasks, recentTasks]);
+    if (!summary) return [];
+    if (activeTab === "deadlines") return summary.upcomingDeadlines.slice(0, 3);
+    if (activeTab === "priority") return summary.highPriorityTasks.slice(0, 3);
+    return summary.recentTasks.slice(0, 3);
+  }, [activeTab, summary]);
 
   const activeEmptyLabel = {
     recent: "Belum ada recent task.",
@@ -328,6 +279,12 @@ export function Dashboard() {
             <h1 className="text-2xl font-bold text-text-main-light mb-1">Dashboard</h1>
             <p className="text-text-muted-light text-sm">Ringkasan project, task, deadline, dan aktivitas terbaru.</p>
           </div>
+          {isRefreshing && summary && (
+            <div className="flex items-center gap-2 text-xs text-text-muted-light">
+              <span className="h-2 w-2 rounded-full bg-primary animate-pulse" />
+              Refreshing
+            </div>
+          )}
         </div>
 
         {error && (
@@ -336,90 +293,98 @@ export function Dashboard() {
           </div>
         )}
 
-        <section className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-          <StatCard
-            title="Total Projects"
-            value={isLoading ? "..." : String(projectTotal)}
-            icon={<MdTrendingUp />}
-            color="green"
-          />
-          <StatCard
-            title="Total Tasks"
-            value={isLoading ? "..." : String(tasks.length)}
-            icon={<MdSchedule />}
-            color="orange"
-          />
-          <StatCard
-            title="Progress Project"
-            value={isLoading ? "..." : `${stats.progress}%`}
-            icon={<MdFolder />}
-            color="blue"
-            progress={stats.progress}
-            showProgress
-          />
-          <StatCard
-            title="Overdue Tasks"
-            value={isLoading ? "..." : String(stats.overdueTasks)}
-            icon={<MdPriorityHigh />}
-            color="red"
-            helperText="Requires immediate action"
-            dangerValue
-          />
-        </section>
+        {isLoading && !summary ? (
+          <DashboardSkeleton />
+        ) : summary && (
+          <>
+            <section className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+              <StatCard
+                title="Active Progress"
+                value={`${summary.activeProgress.doing}/${summary.activeProgress.total}`}
+                icon={<MdTrendingUp />}
+                color="green"
+                progress={summary.activeProgress.percentage}
+                helperText={`${Math.round(summary.activeProgress.percentage)}% doing from todo + doing`}
+                showProgress
+              />
+              <StatCard
+                title="In Review"
+                value={String(summary.inReview)}
+                icon={<MdFolder />}
+                color="purple"
+                helperText="Needs review"
+              />
+              <StatCard
+                title="Due Soon"
+                value={String(summary.dueSoon)}
+                icon={<MdSchedule />}
+                color="blue"
+                helperText={`Next ${DUE_SOON_DAYS} days`}
+              />
+              <StatCard
+                title="Overdue Tasks"
+                value={String(summary.overdue)}
+                icon={<MdPriorityHigh />}
+                color="red"
+                helperText="Requires immediate action"
+                dangerValue
+              />
+            </section>
 
-        <div className="grid grid-cols-1 xl:grid-cols-[minmax(0,2.1fr)_minmax(320px,1fr)] gap-6">
-          <div className="space-y-6">
-            <div className="flex items-center bg-white p-1 rounded-xl w-fit border border-gray-100 shadow-sm">
-              {DASHBOARD_TABS.map((tab) => (
-                <button
-                  key={tab.id}
-                  onClick={() => setActiveTab(tab.id)}
-                  className={`px-4 py-1.5 rounded-lg text-sm transition-all ${activeTab === tab.id
-                    ? "bg-gray-100 text-text-main-light font-medium shadow-sm"
-                    : "text-text-muted-light hover:bg-gray-50"
-                    }`}
-                >
-                  {tab.label}
-                </button>
-              ))}
+            <div className="grid grid-cols-1 xl:grid-cols-[minmax(0,2.1fr)_minmax(320px,1fr)] gap-6">
+              <div className="space-y-6">
+                <div className="flex items-center bg-white p-1 rounded-xl w-fit border border-gray-100 shadow-sm">
+                  {DASHBOARD_TABS.map((tab) => (
+                    <button
+                      key={tab.id}
+                      onClick={() => setActiveTab(tab.id)}
+                      className={`px-4 py-1.5 rounded-lg text-sm transition-all ${activeTab === tab.id
+                        ? "bg-gray-100 text-text-main-light font-medium shadow-sm"
+                        : "text-text-muted-light hover:bg-gray-50"
+                        }`}
+                    >
+                      {tab.label}
+                    </button>
+                  ))}
+                </div>
+
+                <div className="space-y-4">
+                  {activeTasks.length === 0 ? (
+                    <EmptyTaskState label={activeEmptyLabel} />
+                  ) : activeTasks.map((task) => (
+                    <TaskPreviewCard
+                      key={task.id}
+                      task={task}
+                      meta={
+                        <>
+                          {activeTab === "recent" && (
+                            <span className="flex items-center gap-1 text-xs text-text-muted-light">
+                              <MdChatBubbleOutline className="text-sm" />
+                              {task.id}
+                            </span>
+                          )}
+                          {activeTab === "deadlines" && (
+                            <span className="text-xs font-medium text-text-muted-light">
+                              {getRelativeDate(task.dueDate)}
+                            </span>
+                          )}
+                          {activeTab === "priority" && (
+                            <span className="flex items-center gap-1 text-xs text-text-muted-light">
+                              <MdAttachFile className="text-sm" />
+                              {task.assigneeName ?? "Unassigned"}
+                            </span>
+                          )}
+                        </>
+                      }
+                    />
+                  ))}
+                </div>
+              </div>
+
+              <LatestUpdates activities={summary.latestUpdates} />
             </div>
-
-            <div className="space-y-4">
-              {activeTasks.length === 0 ? (
-                <EmptyTaskState label={activeEmptyLabel} />
-              ) : activeTasks.map((task) => (
-                <TaskPreviewCard
-                  key={task.id}
-                  task={task}
-                  projects={projects}
-                  meta={
-                    <>
-                      {activeTab === "recent" && (
-                        <span className="flex items-center gap-1 text-xs text-text-muted-light">
-                          <MdChatBubbleOutline className="text-sm" />
-                          {task.id}
-                        </span>
-                      )}
-                      {activeTab === "deadlines" && (
-                        <span className="text-xs font-medium text-text-muted-light">
-                          {getRelativeDate(task.dueDate)}
-                        </span>
-                      )}
-                      {activeTab === "priority" && (
-                        <span className="flex items-center gap-1 text-xs text-text-muted-light">
-                          <MdAttachFile className="text-sm" />
-                          {task.assigneeName ?? "Unassigned"}
-                        </span>
-                      )}
-                    </>
-                  }
-                />
-              ))}
-            </div>
-          </div>
-
-          <LatestUpdates tasks={recentActivities} projects={projects} />
-        </div>
+          </>
+        )}
       </div>
     </div>
   );

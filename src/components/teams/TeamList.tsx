@@ -1,5 +1,6 @@
 import type { Team } from "../../types/team";
 import { MdEdit, MdDelete, MdArrowUpward, MdArrowDownward, MdPeople } from "react-icons/md";
+import { TableRowsSkeleton } from "../shared/Loading";
 import { TableListControls, TableListPagination } from "../shared/TableListControls";
 
 interface TeamListProps {
@@ -57,9 +58,7 @@ export function TeamList({
             />
 
             {isLoading ? (
-                <div className="flex justify-center items-center p-8">
-                    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
-                </div>
+                <TableRowsSkeleton rows={pageSize} columns={3} />
             ) : (
                 <>
                     <table className="w-full text-left">

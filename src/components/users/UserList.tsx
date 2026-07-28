@@ -1,6 +1,7 @@
 import type { User } from "../../types/auth";
 import { MdEdit, MdDelete, MdArrowUpward, MdArrowDownward } from "react-icons/md";
 import { getFullAvatarUrl } from "../../utils/avatar";
+import { TableRowsSkeleton } from "../shared/Loading";
 import { TableListControls, TableListPagination, type TableListFilter } from "../shared/TableListControls";
 
 interface UserListProps {
@@ -59,9 +60,7 @@ export function UserList({
             />
 
             {isLoading ? (
-                <div className="flex justify-center items-center p-8">
-                    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
-                </div>
+                <TableRowsSkeleton rows={pageSize} columns={4} />
             ) : (
                 <>
                     <table className="w-full text-left">

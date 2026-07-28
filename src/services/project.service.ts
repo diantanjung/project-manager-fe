@@ -12,6 +12,19 @@ export interface ProjectQueryParams {
     order?: "asc" | "desc";
 }
 
+export interface ProjectSummary {
+    projectId: number;
+    taskCountPerStatus: Partial<Record<"backlog" | "todo" | "in_progress" | "review" | "done", number>>;
+    totalTasks: number;
+    teamCount: number;
+}
+
+export interface SidebarProject {
+    id: number;
+    name: string;
+    openTaskCount: number;
+}
+
 const toProjectPayload = (data: CreateProjectData | UpdateProjectData) => ({
     name: data.name,
     description: data.description,
@@ -24,9 +37,19 @@ export const projectService = {
         return response.data;
     },
 
+    getSidebarProjects: async () => {
+        const response = await api.get<{ data: SidebarProject[] }>("/projects/sidebar");
+        return response.data.data;
+    },
+
     getProjectById: async (id: number) => {
         const response = await api.get<ApiResource<Project>>(`/projects/${id}`);
         return unwrapResource(response.data);
+    },
+
+    getProjectSummary: async (id: number) => {
+        const response = await api.get<ProjectSummary>(`/projects/${id}/summary`);
+        return response.data;
     },
 
     createProject: async (data: CreateProjectData) => {

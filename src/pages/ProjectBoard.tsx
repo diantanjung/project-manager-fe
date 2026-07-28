@@ -12,6 +12,7 @@ import { TaskList } from "../components/tasks/TaskList";
 import type { Task } from "../types/task";
 import { MdFormatListBulleted, MdGridView } from "react-icons/md";
 import { useDebouncedValue } from "../hooks/useDebouncedValue";
+import { PageLoading } from "../components/shared/Loading";
 
 // ... (existing imports and constants)
 
@@ -200,7 +201,7 @@ export function ProjectBoard() {
                     )}
                 </div>
 
-                {viewMode === "board" && isLoading && <div className="text-center py-10">Loading tasks...</div>}
+                {viewMode === "board" && isLoading && <PageLoading label="Loading tasks..." />}
                 {error && <div className="text-center py-10 text-red-500">{error}</div>}
 
                 {!error && (

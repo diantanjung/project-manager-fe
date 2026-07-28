@@ -3,6 +3,7 @@ import { useForm, type SubmitHandler } from "react-hook-form";
 import type { Team } from "../../types/team";
 import { teamService } from "../../services/team.service";
 import type { CreateProjectData } from "../../types/project";
+import { InlineLoading } from "../shared/Loading";
 import { Modal } from "../shared/Modal";
 
 interface ProjectDialogProps {
@@ -105,7 +106,7 @@ export function ProjectDialog({ isOpen, onClose, onSubmit }: ProjectDialogProps)
                             Team
                         </label>
                         {isLoadingTeams ? (
-                            <div className="text-sm text-text-muted-light">Loading teams...</div>
+                            <InlineLoading label="Loading teams..." />
                         ) : teamsError ? (
                             <div className="text-sm text-red-500">{teamsError}</div>
                         ) : (

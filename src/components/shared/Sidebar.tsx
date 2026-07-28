@@ -20,21 +20,45 @@ import { ProjectDialog } from "../projects/ProjectDialog";
 import { useProjectStore } from "../../stores/projectStore";
 import type { CreateProjectData } from "../../types/project";
 import { getFullAvatarUrl } from "../../utils/avatar";
+import { projectService, type SidebarProject } from "../../services/project.service";
+import { Skeleton } from "./Loading";
 
 // ... existing imports
 
 export function Sidebar() {
   const { user, logout } = useAuthStore();
   const { isSidebarOpen, toggleSidebar } = useUIStore();
-  const { projects, fetchProjects, createProject } = useProjectStore();
+  const { createProject } = useProjectStore();
   const navigate = useNavigate();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isProjectDialogOpen, setIsProjectDialogOpen] = useState(false);
+  const [sidebarProjects, setSidebarProjects] = useState<SidebarProject[]>([]);
+  const [isProjectsLoading, setIsProjectsLoading] = useState(true);
   const menuRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    fetchProjects();
-  }, [fetchProjects]);
+    let isMounted = true;
+
+    async function fetchSidebarProjects() {
+      setIsProjectsLoading(true);
+      try {
+        const projects = await projectService.getSidebarProjects();
+        if (isMounted) {
+          setSidebarProjects(projects);
+        }
+      } finally {
+        if (isMounted) {
+          setIsProjectsLoading(false);
+        }
+      }
+    }
+
+    fetchSidebarProjects();
+
+    return () => {
+      isMounted = false;
+    };
+  }, []);
 
   useEffect(() => {
     function handleClickOutside(event: MouseEvent) {
@@ -51,6 +75,7 @@ export function Sidebar() {
   const handleCreateProject = async (data: CreateProjectData) => {
     try {
       await createProject(data);
+      setSidebarProjects(await projectService.getSidebarProjects());
       console.log("Project created successfully");
       // Dialog close is handled by the Dialog component calling its own onClose logic or we pass a wrapper
       // In this implementation ProjectDialog closes itself on submit success, but we passed a wrapper below.
@@ -120,16 +145,23 @@ export function Sidebar() {
               </button>
             </div>
             <ul className="space-y-1">
-              {projects.map((project) => (
+              {isProjectsLoading && Array.from({ length: 4 }, (_, index) => (
+                <li key={index} className="flex items-center gap-3 px-3 py-2">
+                  <Skeleton className="h-2.5 w-2.5 rounded-full" />
+                  <Skeleton className="h-4 flex-1" />
+                  <Skeleton className="h-4 w-5" />
+                </li>
+              ))}
+              {!isProjectsLoading && sidebarProjects.map((project) => (
                 <ProjectItem
                   key={project.id}
                   color={getProjectColor(project.id)}
                   label={project.name}
                   to={`/project/${project.id}`}
-                // count="14" // Todo: Add task count to project
+                  count={project.openTaskCount > 0 ? String(project.openTaskCount) : undefined}
                 />
               ))}
-              {projects.length === 0 && (
+              {!isProjectsLoading && sidebarProjects.length === 0 && (
                 <li className="px-3 py-2 text-sm text-text-muted-light">No projects yet.</li>
               )}
             </ul>

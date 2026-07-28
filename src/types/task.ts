@@ -1,3 +1,5 @@
+import type { Project } from "./project";
+
 export type TaskStatus = "backlog" | "todo" | "in_progress" | "review" | "done";
 export type TaskPriority = "low" | "medium" | "high" | "urgent";
 
@@ -17,6 +19,7 @@ export interface Task {
         name: string;
         avatarUrl?: string;
     };
+    project?: Project;
     dueDate: string | null;
     position: number | null;
     createdAt: string;

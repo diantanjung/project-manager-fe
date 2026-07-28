@@ -1,5 +1,6 @@
 import { useEffect } from "react";
 import { Navigate, Outlet, useLocation } from "react-router";
+import { PageLoading } from "./shared/Loading";
 import { useAuthStore } from "../stores/authStore";
 import type { User } from "../types/auth";
 
@@ -16,7 +17,7 @@ export function ProtectedRoute({ allowedRoles }: ProtectedRouteProps) {
   }, [initializeAuth]);
 
   if (isLoading) {
-    return <div>Loading...</div>; // Or a proper loading spinner
+    return <PageLoading label="Loading session..." />;
   }
 
   if (isAuthenticated && allowedRoles && user && !allowedRoles.includes(user.role)) {

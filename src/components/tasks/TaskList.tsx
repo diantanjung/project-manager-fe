@@ -1,6 +1,7 @@
 import { MdFlag, MdAccessTime } from "react-icons/md";
 import type { Task, TaskPriority, TaskStatus } from "../../types/task";
 import { getFullAvatarUrl } from "../../utils/avatar";
+import { TableRowsSkeleton } from "../shared/Loading";
 import { TableListControls, TableListPagination } from "../shared/TableListControls";
 
 interface TaskListProps {
@@ -124,9 +125,7 @@ export function TaskList({
             />
 
             {isLoading ? (
-                <div className="flex justify-center items-center h-64">
-                    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
-                </div>
+                <TableRowsSkeleton rows={pageSize} columns={6} />
             ) : tasks.length === 0 ? (
                 <div className="flex flex-col items-center justify-center h-64 text-gray-400">
                     <p>{hasActiveFilters ? "No tasks match your filters" : "No tasks found"}</p>

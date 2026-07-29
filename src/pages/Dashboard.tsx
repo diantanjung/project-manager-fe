@@ -10,6 +10,7 @@ import {
 } from "react-icons/md";
 import StatCard from "../components/shared/StatCard";
 import { Skeleton } from "../components/shared/Loading";
+import { TaskDetailDialog } from "../components/tasks/TaskDetailDialog";
 import { useDashboardStore } from "../stores/dashboardStore";
 import type { ActivityLog } from "../types/activity";
 import type { Task } from "../types/task";
@@ -88,15 +89,22 @@ function EmptyTaskState({ label }: { label: string }) {
 function TaskPreviewCard({
   task,
   meta,
+  onClick,
 }: {
   task: Task;
   meta?: React.ReactNode;
+  onClick: (task: Task) => void;
 }) {
   const accent = TASK_ACCENT_STYLES[task.priority ?? "none"];
   const isDone = task.status === "done";
 
   return (
-    <div className={`group bg-white p-5 rounded-xl border border-gray-100 hover:shadow-md transition-all relative overflow-hidden min-h-28 ${isDone ? "opacity-75" : ""}`}>
+    <button
+      type="button"
+      onClick={() => onClick(task)}
+      className={`group w-full text-left bg-white p-5 rounded-xl border border-gray-100 hover:shadow-md hover:border-primary/30 focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all relative overflow-hidden min-h-28 ${isDone ? "opacity-75" : ""}`}
+      aria-label={`Lihat detail task ${task.title}`}
+    >
       <div className={`absolute left-0 top-0 bottom-0 w-1 ${accent}`} />
       <div className="flex items-start justify-between gap-4 pl-1">
         <div className="flex items-start gap-4 min-w-0">
@@ -143,7 +151,7 @@ function TaskPreviewCard({
           )}
         </div>
       </div>
-    </div>
+    </button>
   );
 }
 
@@ -253,6 +261,7 @@ export function Dashboard() {
     fetchDashboard,
   } = useDashboardStore();
   const [activeTab, setActiveTab] = useState<DashboardTab>("recent");
+  const [selectedTask, setSelectedTask] = useState<Task | null>(null);
 
   useEffect(() => {
     fetchDashboard();
@@ -355,6 +364,7 @@ export function Dashboard() {
                     <TaskPreviewCard
                       key={task.id}
                       task={task}
+                      onClick={setSelectedTask}
                       meta={
                         <>
                           {activeTab === "recent" && (
@@ -383,6 +393,15 @@ export function Dashboard() {
 
               <LatestUpdates activities={summary.latestUpdates} />
             </div>
+
+            {selectedTask && (
+              <TaskDetailDialog
+                isOpen
+                onClose={() => setSelectedTask(null)}
+                task={selectedTask}
+                projectId={selectedTask.projectId}
+              />
+            )}
           </>
         )}
       </div>

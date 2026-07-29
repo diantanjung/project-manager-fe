@@ -1,14 +1,21 @@
-import { cleanup, render, screen, waitFor } from "@testing-library/react";
+import { cleanup, fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { Dashboard } from "./Dashboard";
 import { dashboardService } from "../services/dashboard.service";
 import type { DashboardSummary } from "../services/dashboard.service";
 import { useDashboardStore } from "../stores/dashboardStore";
+import type { Task } from "../types/task";
 
 vi.mock("../services/dashboard.service", () => ({
     dashboardService: {
         getDashboard: vi.fn(),
     },
+}));
+
+vi.mock("../components/tasks/TaskDetailDialog", () => ({
+    TaskDetailDialog: ({ isOpen, task }: { isOpen: boolean; task: Task }) => (
+        isOpen ? <div role="dialog">Task detail: {task.title}</div> : null
+    ),
 }));
 
 const makeDashboardSummary = (): DashboardSummary => ({
@@ -109,6 +116,19 @@ describe("Dashboard", () => {
         expect(screen.getByText("Finalize API contract")).toBeInTheDocument();
         expect(screen.getByText("Dian")).toBeInTheDocument();
         expect(screen.getByText("Task #11")).toBeInTheDocument();
+    });
+
+    it("opens task detail when a dashboard task is clicked", async () => {
+        vi.mocked(dashboardService.getDashboard).mockResolvedValueOnce(makeDashboardSummary());
+
+        render(<Dashboard />);
+
+        const taskButton = await screen.findByRole("button", {
+            name: /lihat detail task finalize api contract/i,
+        });
+        fireEvent.click(taskButton);
+
+        expect(screen.getByRole("dialog")).toHaveTextContent("Task detail: Finalize API contract");
     });
 
     it("shows cached dashboard data while refreshing in the background", async () => {

@@ -13,6 +13,7 @@ import type { Task } from "../types/task";
 import { MdFormatListBulleted, MdGridView } from "react-icons/md";
 import { useDebouncedValue } from "../hooks/useDebouncedValue";
 import { PageLoading } from "../components/shared/Loading";
+import { rememberLastOpenedProject } from "../utils/lastOpenedProject";
 
 // ... (existing imports and constants)
 
@@ -65,6 +66,12 @@ export function ProjectBoard() {
     const debouncedSearch = useDebouncedValue(searchInput, 500);
 
     const selectedTask = selectedTaskId ? tasks.find(t => t.id === selectedTaskId) : null;
+
+    useEffect(() => {
+        if (projectId) {
+            rememberLastOpenedProject(Number(projectId));
+        }
+    }, [projectId]);
 
     const updateUrlParams = useCallback((newParams: Record<string, string | number | undefined>) => {
         setSearchParams((prev) => {

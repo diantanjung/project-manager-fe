@@ -1,4 +1,4 @@
-import { createBrowserRouter, RouterProvider, Navigate } from "react-router";
+import { createBrowserRouter, RouterProvider } from "react-router";
 import "./index.css";
 // Import your components
 import { MainLayout } from "./layouts/MainLayout";
@@ -9,6 +9,7 @@ import { Profile } from "./pages/Profile";
 import { ProtectedRoute } from "./components/ProtectedRoute";
 import { Users } from "./pages/admin/Users";
 import { Teams } from "./pages/admin/Teams";
+import { HomeRedirect } from "./pages/HomeRedirect";
 
 import { ProjectBoard } from "./pages/ProjectBoard";
 
@@ -30,7 +31,7 @@ function App() {
           children: [
             {
               path: "/",
-              element: <Navigate to="/dashboard" replace />,
+              element: <HomeRedirect />,
             },
             {
               path: "dashboard",

@@ -113,9 +113,9 @@ export function Sidebar() {
         <div className="flex-1 overflow-y-auto px-4 py-6 space-y-8">
           <nav className="space-y-1">
             <NavItem
-              to="/"
+              to="/dashboard"
               icon={<MdDashboard className="text-xl" />}
-              label="Home"
+              label="Dashboard"
             />
             {user?.role === "admin" && (
               <>

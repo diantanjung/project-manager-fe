@@ -168,7 +168,7 @@ export function Login() {
             </button>
           </form>
 
-          <div className="relative my-8">
+          {/* <div className="relative my-8">
             <div className="absolute inset-0 flex items-center">
               <div className="w-full border-t border-gray-200 "></div>
             </div>
@@ -219,9 +219,9 @@ export function Login() {
                 GitHub
               </span>
             </button>
-          </div>
+          </div> */}
 
-          <p className="text-center text-sm text-text-muted-light ">
+          <p className="mt-6 text-center text-sm text-text-muted-light ">
             Don't have an account?{" "}
             <Link
               className="font-medium text-primary hover:text-accent-purple transition-colors"

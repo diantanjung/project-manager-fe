@@ -1,0 +1,109 @@
+<!doctype html>
+<html lang="id">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Chapter 11 - Urutan Pengerjaan</title>
+  <link rel="stylesheet" href="styles.css">
+  <script src="toc.js" defer></script>
+</head>
+<body>
+  <main class="page">
+    <div class="topbar">
+      <a href="index.html">Daftar Chapter</a>
+      <span>Chapter 11</span>
+    </div>
+    <article class="card">
+      <h1>Urutan Pengerjaan dari Nol</h1>
+      <p>
+        Chapter terakhir ini merangkum urutan kerja yang bisa diikuti oleh pemula.
+        Ikuti dari atas ke bawah agar tidak loncat terlalu jauh.
+      </p>
+
+      <h2>Tahap 1 - Pondasi Project</h2>
+      <ol>
+        <li>Install Node.js dan npm.</li>
+        <li>Buat project dengan Vite React TypeScript.</li>
+        <li>Install dependency utama.</li>
+        <li>Atur <code>vite.config.ts</code>.</li>
+        <li>Atur <code>src/index.css</code> untuk Tailwind dan theme.</li>
+        <li>Buat file <code>.env</code> untuk alamat API.</li>
+      </ol>
+
+      <h2>Tahap 2 - Struktur Aplikasi</h2>
+      <ol>
+        <li>Buat folder <code>components</code>, <code>pages</code>, <code>layouts</code>, <code>services</code>, <code>stores</code>, <code>types</code>, dan <code>utils</code>.</li>
+        <li>Buat route utama di <code>src/App.tsx</code>.</li>
+        <li>Buat <code>MainLayout</code> dengan sidebar, header, dan outlet.</li>
+        <li>Buat komponen kecil seperti Loading, Modal, NavItem, dan PageHeader.</li>
+      </ol>
+
+      <h2>Tahap 3 - Authentication</h2>
+      <ol>
+        <li>Buat tipe data auth di <code>src/types/auth.ts</code>.</li>
+        <li>Buat Axios client di <code>src/lib/axios.ts</code>.</li>
+        <li>Buat <code>auth.service.ts</code>.</li>
+        <li>Buat <code>authStore.ts</code>.</li>
+        <li>Buat halaman Login dan Register.</li>
+        <li>Buat <code>ProtectedRoute</code>.</li>
+      </ol>
+
+      <h2>Tahap 4 - Data Utama</h2>
+      <ol>
+        <li>Buat tipe Project, Task, Team, User, Comment, Attachment, dan Notification.</li>
+        <li>Buat service untuk setiap data.</li>
+        <li>Buat store untuk setiap fitur.</li>
+        <li>Pastikan setiap store punya loading dan error state.</li>
+      </ol>
+
+      <h2>Tahap 5 - Halaman dan Komponen Fitur</h2>
+      <ol>
+        <li>Buat Dashboard.</li>
+        <li>Buat Sidebar daftar project.</li>
+        <li>Buat ProjectBoard mode board.</li>
+        <li>Tambahkan drag and drop task.</li>
+        <li>Tambahkan TaskList dengan search, filter, dan pagination.</li>
+        <li>Buat TaskDialog dan TaskDetailDialog.</li>
+        <li>Buat halaman admin Users dan Teams.</li>
+        <li>Tambahkan notification bell, comment, upload, dan attachment.</li>
+      </ol>
+
+      <h2>Tahap 6 - Rapikan dan Uji</h2>
+      <ol>
+        <li>Jalankan <code>npm run dev</code> untuk mencoba aplikasi.</li>
+        <li>Jalankan <code>npm run test</code>.</li>
+        <li>Jalankan <code>npm run lint</code>.</li>
+        <li>Jalankan <code>npm run build</code>.</li>
+        <li>Jalankan <code>npm run preview</code> untuk mengecek hasil build.</li>
+      </ol>
+
+      <h2>Alur Kerja Harian Developer</h2>
+      <p>
+        Saat mengerjakan project setiap hari, alurnya biasanya seperti ini:
+      </p>
+      <pre><code>npm install
+npm run dev
+
+# ubah kode
+# coba di browser
+
+npm run test
+npm run lint
+npm run build</code></pre>
+
+      <h2>Ringkasan Akhir</h2>
+      <p>
+        Project ini dibangun dari pondasi Vite dan React, lalu disusun menjadi aplikasi
+        lengkap dengan routing, layout, authentication, service API, store, dan halaman fitur.
+        Jika mengikuti chapter dari awal, pembaca akan memahami bukan hanya cara menjalankan
+        project, tetapi juga kenapa folder dan alur kodenya dibuat seperti sekarang.
+      </p>
+
+      <div class="next">
+        <a href="chapter-10-testing-build.html">Sebelumnya</a>
+        <a href="index.html">Kembali ke daftar</a>
+      </div>
+    </article>
+  </main>
+</body>
+</html>

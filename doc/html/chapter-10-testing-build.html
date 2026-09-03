@@ -1,0 +1,79 @@
+<!doctype html>
+<html lang="id">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Chapter 10 - Testing, Build, dan Preview</title>
+  <link rel="stylesheet" href="styles.css">
+  <script src="toc.js" defer></script>
+</head>
+<body>
+  <main class="page">
+    <div class="topbar">
+      <a href="index.html">Daftar Chapter</a>
+      <span>Chapter 10</span>
+    </div>
+    <article class="card">
+      <h1>Testing, Build, dan Preview</h1>
+      <p>
+        Setelah fitur selesai dibuat, project perlu dicek. Tujuannya agar kita tahu
+        aplikasi masih berjalan dan tidak ada kesalahan besar.
+      </p>
+
+      <h2>1. Menjalankan Test</h2>
+      <p>
+        Project ini memakai Vitest. Jalankan:
+      </p>
+      <pre><code>npm run test</code></pre>
+      <p>
+        Test berada di beberapa file seperti:
+      </p>
+      <ul>
+        <li><code>src/services/*.test.ts</code></li>
+        <li><code>src/stores/*.test.ts</code></li>
+        <li><code>src/pages/*.test.tsx</code></li>
+        <li><code>src/components/**/*.test.tsx</code></li>
+      </ul>
+
+      <h2>2. Menjalankan Lint</h2>
+      <p>
+        Lint membantu menemukan pola kode yang kurang rapi atau berpotensi salah.
+      </p>
+      <pre><code>npm run lint</code></pre>
+
+      <h2>3. Build Production</h2>
+      <p>
+        Build membuat versi aplikasi yang siap ditempatkan di hosting.
+      </p>
+      <pre><code>npm run build</code></pre>
+      <p>
+        Script build project ini menjalankan TypeScript build dulu, lalu Vite build:
+      </p>
+      <pre><code>tsc -b &amp;&amp; vite build</code></pre>
+
+      <h2>4. Preview Build</h2>
+      <p>
+        Setelah build selesai, jalankan preview untuk melihat hasil production secara lokal.
+      </p>
+      <pre><code>npm run preview</code></pre>
+
+      <h2>5. Checklist Sebelum Deploy</h2>
+      <ul>
+        <li><code>.env</code> sudah mengarah ke backend API yang benar.</li>
+        <li>Login berhasil.</li>
+        <li>Dashboard berhasil memuat data.</li>
+        <li>Project bisa dibuat dan dibuka.</li>
+        <li>Task bisa dibuat, diedit, dipindah status, dan dihapus.</li>
+        <li>Halaman admin hanya bisa dibuka oleh admin.</li>
+        <li><code>npm run test</code> berhasil.</li>
+        <li><code>npm run build</code> berhasil.</li>
+      </ul>
+
+      <div class="next">
+        <a href="chapter-09-fitur-utama.html">Sebelumnya</a>
+        <a href="chapter-11-urutan-pengerjaan.html">Lanjut ke Chapter 11</a>
+      </div>
+    </article>
+  </main>
+</body>
+</html>

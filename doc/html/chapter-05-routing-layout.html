@@ -1,0 +1,87 @@
+<!doctype html>
+<html lang="id">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Chapter 05 - Routing dan Layout</title>
+  <link rel="stylesheet" href="styles.css">
+  <script src="toc.js" defer></script>
+</head>
+<body>
+  <main class="page">
+    <div class="topbar">
+      <a href="index.html">Daftar Chapter</a>
+      <span>Chapter 05</span>
+    </div>
+    <article class="card">
+      <h1>Routing dan Layout</h1>
+      <p>
+        Routing adalah aturan halaman. Saat pengguna membuka alamat tertentu,
+        React Router menentukan komponen apa yang harus tampil.
+      </p>
+
+      <h2>1. Entry Point Aplikasi</h2>
+      <p>
+        File <code>src/main.tsx</code> adalah pintu masuk aplikasi. Di sini React
+        menempelkan aplikasi ke elemen HTML dengan id <code>root</code>.
+      </p>
+      <pre><code>createRoot(document.getElementById("root")!).render(
+  &lt;StrictMode&gt;
+    &lt;App /&gt;
+  &lt;/StrictMode&gt;
+);</code></pre>
+
+      <h2>2. Daftar Route</h2>
+      <p>
+        File <code>src/App.tsx</code> membuat router dengan <code>createBrowserRouter</code>.
+        Project ini punya halaman publik dan halaman yang harus login.
+      </p>
+      <table>
+        <thead>
+          <tr>
+            <th>Route</th>
+            <th>Halaman</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr><td><code>/login</code></td><td>Halaman login</td></tr>
+          <tr><td><code>/register</code></td><td>Halaman register</td></tr>
+          <tr><td><code>/dashboard</code></td><td>Dashboard utama</td></tr>
+          <tr><td><code>/project/:projectId</code></td><td>Board dan list task per project</td></tr>
+          <tr><td><code>/profile</code></td><td>Profil user</td></tr>
+          <tr><td><code>/admin/users</code></td><td>Manajemen user khusus admin</td></tr>
+          <tr><td><code>/admin/teams</code></td><td>Manajemen team khusus admin</td></tr>
+        </tbody>
+      </table>
+
+      <h2>3. Layout Utama</h2>
+      <p>
+        File <code>src/layouts/MainLayout.tsx</code> membuat tampilan dasar setelah login:
+        sidebar di kiri, header di atas, dan konten halaman di area utama.
+      </p>
+      <pre><code>&lt;div className="flex h-screen w-full"&gt;
+  &lt;Sidebar /&gt;
+  &lt;main&gt;
+    &lt;PageHeader /&gt;
+    &lt;Outlet /&gt;
+  &lt;/main&gt;
+&lt;/div&gt;</code></pre>
+      <p>
+        <code>Outlet</code> adalah tempat anak route ditampilkan. Misalnya, ketika route
+        adalah <code>/dashboard</code>, maka komponen Dashboard muncul di posisi Outlet.
+      </p>
+
+      <h2>4. Sidebar</h2>
+      <p>
+        Sidebar menampilkan menu Dashboard, Users, Teams, dan daftar project.
+        Menu Users dan Teams hanya muncul untuk user dengan role <code>admin</code>.
+      </p>
+
+      <div class="next">
+        <a href="chapter-04-struktur-folder.html">Sebelumnya</a>
+        <a href="chapter-06-authentication.html">Lanjut ke Chapter 06</a>
+      </div>
+    </article>
+  </main>
+</body>
+</html>

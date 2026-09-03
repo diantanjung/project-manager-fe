@@ -1,0 +1,101 @@
+<!doctype html>
+<html lang="id">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Chapter 04 - Struktur Folder</title>
+  <link rel="stylesheet" href="styles.css">
+  <script src="toc.js" defer></script>
+</head>
+<body>
+  <main class="page">
+    <div class="topbar">
+      <a href="index.html">Daftar Chapter</a>
+      <span>Chapter 04</span>
+    </div>
+    <article class="card">
+      <h1>Struktur Folder</h1>
+      <p>
+        Struktur folder membantu project tetap rapi. Setiap jenis file punya rumahnya
+        masing-masing, sehingga orang baru bisa lebih mudah mencari file.
+      </p>
+
+      <h2>Struktur Utama</h2>
+      <pre><code>src/
+  components/
+  features/
+  hooks/
+  layouts/
+  lib/
+  pages/
+  services/
+  stores/
+  test/
+  types/
+  utils/</code></pre>
+
+      <h2>Penjelasan Folder</h2>
+      <table>
+        <thead>
+          <tr>
+            <th>Folder</th>
+            <th>Isi</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><code>components</code></td>
+            <td>Komponen UI yang bisa dipakai ulang, seperti modal, sidebar, task card, dan list.</td>
+          </tr>
+          <tr>
+            <td><code>pages</code></td>
+            <td>Halaman utama yang dihubungkan ke route, seperti Login, Dashboard, dan ProjectBoard.</td>
+          </tr>
+          <tr>
+            <td><code>layouts</code></td>
+            <td>Kerangka halaman, misalnya layout yang berisi sidebar dan header.</td>
+          </tr>
+          <tr>
+            <td><code>services</code></td>
+            <td>Tempat fungsi untuk memanggil backend API.</td>
+          </tr>
+          <tr>
+            <td><code>stores</code></td>
+            <td>Tempat state global menggunakan Zustand.</td>
+          </tr>
+          <tr>
+            <td><code>types</code></td>
+            <td>Definisi tipe data TypeScript, misalnya tipe User, Project, Task, dan Team.</td>
+          </tr>
+          <tr>
+            <td><code>lib</code></td>
+            <td>Konfigurasi library, contohnya konfigurasi Axios di <code>src/lib/axios.ts</code>.</td>
+          </tr>
+          <tr>
+            <td><code>utils</code></td>
+            <td>Fungsi kecil yang membantu kebutuhan tertentu, seperti format avatar atau API error.</td>
+          </tr>
+        </tbody>
+      </table>
+
+      <h2>Alur File Saat Fitur Dibuka</h2>
+      <p>
+        Contoh saat pengguna membuka halaman project:
+      </p>
+      <ol>
+        <li><code>src/App.tsx</code> membaca route <code>/project/:projectId</code>.</li>
+        <li>React Router menampilkan <code>src/pages/ProjectBoard.tsx</code>.</li>
+        <li>Halaman memanggil <code>useTaskStore</code> dari <code>src/stores/taskStore.ts</code>.</li>
+        <li>Store memanggil <code>taskService</code> dari <code>src/services/task.service.ts</code>.</li>
+        <li>Service mengirim request ke backend memakai Axios.</li>
+        <li>Data task diterima lalu ditampilkan sebagai card atau list.</li>
+      </ol>
+
+      <div class="next">
+        <a href="chapter-03-membuat-project-vite.html">Sebelumnya</a>
+        <a href="chapter-05-routing-layout.html">Lanjut ke Chapter 05</a>
+      </div>
+    </article>
+  </main>
+</body>
+</html>

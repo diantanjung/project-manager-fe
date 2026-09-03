@@ -1,0 +1,100 @@
+<!doctype html>
+<html lang="id">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Chapter 08 - State Management</title>
+  <link rel="stylesheet" href="styles.css">
+  <script src="toc.js" defer></script>
+</head>
+<body>
+  <main class="page">
+    <div class="topbar">
+      <a href="index.html">Daftar Chapter</a>
+      <span>Chapter 08</span>
+    </div>
+    <article class="card">
+      <h1>State Management dengan Zustand</h1>
+      <p>
+        State adalah data yang sedang dipakai aplikasi. Contohnya: user yang login,
+        daftar project, daftar task, loading, error, dan pagination.
+      </p>
+
+      <h2>Kenapa Memakai Store?</h2>
+      <p>
+        Tanpa store, data harus dikirim dari satu komponen ke komponen lain secara manual.
+        Semakin besar aplikasi, cara itu menjadi sulit. Zustand membantu membuat tempat
+        penyimpanan data yang bisa dipakai banyak komponen.
+      </p>
+
+      <h2>Pola Store di Project Ini</h2>
+      <p>
+        Hampir semua store punya pola yang mirip:
+      </p>
+      <ol>
+        <li>Simpan data utama, misalnya <code>projects</code> atau <code>tasks</code>.</li>
+        <li>Simpan status loading, error, page, total, dan limit.</li>
+        <li>Buat action seperti fetch, create, update, delete.</li>
+        <li>Action memanggil service API.</li>
+        <li>Setelah API berhasil, store memperbarui state.</li>
+      </ol>
+
+      <h2>Contoh Project Store</h2>
+      <p>
+        <code>src/stores/projectStore.ts</code> menyimpan daftar project dan action
+        untuk mengambil, membuat, mengubah, dan menghapus project.
+      </p>
+      <pre><code>fetchProjects: async (params) =&gt; {
+  set({ isLoading: true, error: null });
+  try {
+    const response = await projectService.getAllProjects(params);
+    set({
+      projects: response.data,
+      total: response.pagination.totalItems,
+      page: response.pagination.page,
+      totalPages: response.pagination.totalPages,
+      isLoading: false,
+    });
+  } catch {
+    set({ error: "Failed to fetch projects", isLoading: false });
+  }
+}</code></pre>
+
+      <h2>Contoh Task Store</h2>
+      <p>
+        <code>src/stores/taskStore.ts</code> menyimpan task dan punya fungsi
+        <code>moveTask</code>. Fungsi ini dipakai saat user memindahkan task di board.
+      </p>
+      <p>
+        Saat task dipindahkan, UI langsung berubah dulu. Cara ini disebut optimistic update.
+        Setelah itu frontend mengirim perubahan ke backend.
+      </p>
+
+      <h2>Daftar Store</h2>
+      <table>
+        <thead>
+          <tr>
+            <th>Store</th>
+            <th>Data yang Disimpan</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr><td><code>authStore</code></td><td>User login dan status authentication.</td></tr>
+          <tr><td><code>projectStore</code></td><td>Daftar project dan pagination.</td></tr>
+          <tr><td><code>taskStore</code></td><td>Daftar task, filter, pagination, dan perpindahan status.</td></tr>
+          <tr><td><code>dashboardStore</code></td><td>Ringkasan dashboard.</td></tr>
+          <tr><td><code>teamStore</code></td><td>Data team dan member.</td></tr>
+          <tr><td><code>userStore</code></td><td>Data user untuk admin.</td></tr>
+          <tr><td><code>notificationStore</code></td><td>Notifikasi user.</td></tr>
+          <tr><td><code>uiStore</code></td><td>Status UI seperti buka/tutup sidebar.</td></tr>
+        </tbody>
+      </table>
+
+      <div class="next">
+        <a href="chapter-07-api-service.html">Sebelumnya</a>
+        <a href="chapter-09-fitur-utama.html">Lanjut ke Chapter 09</a>
+      </div>
+    </article>
+  </main>
+</body>
+</html>

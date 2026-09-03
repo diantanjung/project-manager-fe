@@ -1,0 +1,71 @@
+<!doctype html>
+<html lang="id">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Chapter 02 - Persiapan Komputer</title>
+  <link rel="stylesheet" href="styles.css">
+  <script src="toc.js" defer></script>
+</head>
+<body>
+  <main class="page">
+    <div class="topbar">
+      <a href="index.html">Daftar Chapter</a>
+      <span>Chapter 02</span>
+    </div>
+    <article class="card">
+      <h1>Persiapan Komputer</h1>
+      <p>
+        Sebelum membuat project, komputer perlu memiliki beberapa alat dasar.
+        Anggap saja seperti menyiapkan meja kerja sebelum mulai membangun.
+      </p>
+
+      <h2>1. Install Node.js dan npm</h2>
+      <p>
+        Node.js dipakai agar kita bisa menjalankan tool JavaScript di komputer.
+        npm biasanya ikut terinstall bersama Node.js. Setelah install, cek versinya:
+      </p>
+      <pre><code>node -v
+npm -v</code></pre>
+
+      <h2>2. Install Code Editor</h2>
+      <p>
+        Gunakan editor seperti Visual Studio Code, WebStorm, atau editor lain yang nyaman.
+        Editor dipakai untuk membuka folder project dan mengubah file.
+      </p>
+
+      <h2>3. Siapkan Terminal</h2>
+      <p>
+        Terminal adalah tempat menjalankan perintah seperti install dependency,
+        menjalankan server, test, dan build.
+      </p>
+
+      <h2>4. Siapkan Backend API</h2>
+      <p>
+        Frontend ini butuh backend API. Secara default, project mengarah ke:
+      </p>
+      <pre><code>http://localhost:8000/api/v1</code></pre>
+      <p>
+        Jika backend belum berjalan, halaman mungkin terbuka, tetapi data seperti login,
+        project, task, dan dashboard tidak akan berhasil dimuat.
+      </p>
+
+      <h2>5. Buat File Environment</h2>
+      <p>
+        Buat file <code>.env</code> di root project untuk menentukan alamat backend.
+      </p>
+      <pre><code>VITE_API_URL=http://localhost:8000/api/v1</code></pre>
+
+      <div class="note">
+        Semua environment variable yang ingin dibaca oleh Vite di browser harus diawali
+        dengan <code>VITE_</code>.
+      </div>
+
+      <div class="next">
+        <a href="chapter-01-gambaran-project.html">Sebelumnya</a>
+        <a href="chapter-03-membuat-project-vite.html">Lanjut ke Chapter 03</a>
+      </div>
+    </article>
+  </main>
+</body>
+</html>

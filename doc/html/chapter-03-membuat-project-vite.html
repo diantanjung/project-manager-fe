@@ -1,0 +1,90 @@
+<!doctype html>
+<html lang="id">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Chapter 03 - Membuat Project Vite</title>
+  <link rel="stylesheet" href="styles.css">
+  <script src="toc.js" defer></script>
+</head>
+<body>
+  <main class="page">
+    <div class="topbar">
+      <a href="index.html">Daftar Chapter</a>
+      <span>Chapter 03</span>
+    </div>
+    <article class="card">
+      <h1>Membuat Project Vite</h1>
+      <p>
+        Project ini dibuat dengan Vite. Vite membantu React berjalan cepat saat development
+        dan membuat hasil build untuk production.
+      </p>
+
+      <h2>1. Buat Project Baru</h2>
+      <p>
+        Jika membuat dari benar-benar nol, jalankan perintah berikut:
+      </p>
+      <pre><code>npm create vite@latest project-manager-fe -- --template react-ts</code></pre>
+      <p>
+        Perintah itu membuat project bernama <code>project-manager-fe</code> dengan template
+        React dan TypeScript.
+      </p>
+
+      <h2>2. Masuk ke Folder Project</h2>
+      <pre><code>cd project-manager-fe</code></pre>
+
+      <h2>3. Install Dependency</h2>
+      <pre><code>npm install</code></pre>
+
+      <h2>4. Install Library yang Dipakai Project Ini</h2>
+      <p>
+        Project ini memakai beberapa library tambahan untuk routing, API, state,
+        style, form, icon, drag and drop, dan testing.
+      </p>
+      <pre><code>npm install react-router zustand axios tailwindcss @tailwindcss/vite react-hook-form react-icons react-select @hello-pangea/dnd</code></pre>
+      <pre><code>npm install -D vitest jsdom @testing-library/react @testing-library/jest-dom eslint typescript-eslint</code></pre>
+
+      <h2>5. Atur Script di package.json</h2>
+      <p>
+        File <code>package.json</code> project ini memiliki script berikut:
+      </p>
+      <pre><code>"scripts": {
+  "dev": "vite",
+  "build": "tsc -b && vite build",
+  "lint": "eslint .",
+  "test": "vitest run",
+  "preview": "vite preview"
+}</code></pre>
+
+      <h2>6. Jalankan Development Server</h2>
+      <pre><code>npm run dev</code></pre>
+      <p>
+        Biasanya Vite akan menampilkan alamat seperti <code>http://localhost:5173</code>.
+        Buka alamat itu di browser untuk melihat aplikasi.
+      </p>
+
+      <h2>7. Konfigurasi Vite</h2>
+      <p>
+        File <code>vite.config.ts</code> project ini memakai plugin React SWC,
+        plugin Tailwind CSS, dan konfigurasi test.
+      </p>
+      <pre><code>import { defineConfig } from "vitest/config";
+import react from "@vitejs/plugin-react-swc";
+import tailwindcss from "@tailwindcss/vite";
+
+export default defineConfig({
+  plugins: [react(), tailwindcss()],
+  test: {
+    environment: "jsdom",
+    setupFiles: "./src/test/setup.ts",
+  },
+});</code></pre>
+
+      <div class="next">
+        <a href="chapter-02-persiapan-komputer.html">Sebelumnya</a>
+        <a href="chapter-04-struktur-folder.html">Lanjut ke Chapter 04</a>
+      </div>
+    </article>
+  </main>
+</body>
+</html>

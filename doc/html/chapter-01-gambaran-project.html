@@ -1,0 +1,94 @@
+<!doctype html>
+<html lang="id">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Chapter 01 - Gambaran Project</title>
+  <link rel="stylesheet" href="styles.css">
+  <script src="toc.js" defer></script>
+</head>
+<body>
+  <main class="page">
+    <div class="topbar">
+      <a href="index.html">Daftar Chapter</a>
+      <span>Chapter 01</span>
+    </div>
+    <article class="card">
+      <h1>Gambaran Project</h1>
+      <p>
+        Project ini adalah aplikasi web untuk mengatur pekerjaan. Di dalamnya ada login,
+        dashboard, project, task, team, user admin, notifikasi, komentar, dan attachment.
+        Nama tampilan aplikasinya adalah <strong>TaskFlow</strong>.
+      </p>
+
+      <h2>Apa yang Dibangun?</h2>
+      <p>
+        Bayangkan sebuah tim sedang mengerjakan banyak pekerjaan. Mereka perlu tempat
+        untuk melihat daftar project, membagi task, memindahkan task dari "To Do" ke
+        "In Progress", melihat deadline, dan mengelola anggota tim. Aplikasi ini dibuat
+        untuk kebutuhan itu.
+      </p>
+
+      <h2>Bagian Frontend dan Backend</h2>
+      <p>
+        Project ini adalah bagian <strong>frontend</strong>. Artinya, project ini bertugas
+        menampilkan halaman dan menerima interaksi dari pengguna. Untuk menyimpan data,
+        frontend mengirim request ke <strong>backend API</strong>.
+      </p>
+      <table>
+        <thead>
+          <tr>
+            <th>Bagian</th>
+            <th>Tugas</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>Frontend</td>
+            <td>Menampilkan UI, form, tombol, daftar project, board task, dan dashboard.</td>
+          </tr>
+          <tr>
+            <td>Backend API</td>
+            <td>Menerima request, menyimpan data, memeriksa login, dan mengirim data kembali.</td>
+          </tr>
+        </tbody>
+      </table>
+
+      <h2>Teknologi yang Dipakai</h2>
+      <ul>
+        <li><strong>React</strong>: membuat tampilan dari komponen kecil.</li>
+        <li><strong>TypeScript</strong>: membantu menangkap kesalahan tipe data lebih awal.</li>
+        <li><strong>Vite</strong>: menjalankan project saat development dan membuat build production.</li>
+        <li><strong>Tailwind CSS</strong>: membuat style dengan class utility.</li>
+        <li><strong>React Router</strong>: mengatur perpindahan halaman.</li>
+        <li><strong>Zustand</strong>: menyimpan state global seperti user, project, dan task.</li>
+        <li><strong>Axios</strong>: mengirim request ke backend API.</li>
+        <li><strong>React Hook Form</strong>: membantu mengelola sebagian form, seperti form project, task, team, dan user.</li>
+        <li><strong>Vitest</strong>: menjalankan test.</li>
+      </ul>
+
+      <div class="note">
+        Di project saat ini, React Hook Form belum dipakai di semua form. Form Login,
+        Register, dan Profile masih memakai state React manual, sedangkan beberapa dialog
+        fitur sudah memakai React Hook Form.
+      </div>
+
+      <h2>Alur Sederhana Aplikasi</h2>
+      <ol>
+        <li>Pengguna membuka aplikasi.</li>
+        <li>Jika belum login, pengguna diarahkan ke halaman login.</li>
+        <li>Setelah login, token disimpan di memory dan data user disimpan di localStorage.</li>
+        <li>Pengguna masuk ke dashboard.</li>
+        <li>Pengguna memilih project dari sidebar.</li>
+        <li>Pengguna membuat, melihat, mengubah, atau memindahkan task.</li>
+        <li>Frontend mengirim perubahan ke backend API.</li>
+      </ol>
+
+      <div class="next">
+        <a href="index.html">Kembali ke daftar</a>
+        <a href="chapter-02-persiapan-komputer.html">Lanjut ke Chapter 02</a>
+      </div>
+    </article>
+  </main>
+</body>
+</html>

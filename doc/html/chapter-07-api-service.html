@@ -1,0 +1,97 @@
+<!doctype html>
+<html lang="id">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Chapter 07 - API Service</title>
+  <link rel="stylesheet" href="styles.css">
+  <script src="toc.js" defer></script>
+</head>
+<body>
+  <main class="page">
+    <div class="topbar">
+      <a href="index.html">Daftar Chapter</a>
+      <span>Chapter 07</span>
+    </div>
+    <article class="card">
+      <h1>Koneksi API dengan Axios</h1>
+      <p>
+        Frontend tidak menyimpan data utama sendiri. Data seperti user, project,
+        task, comment, dan notification diambil dari backend API. Project ini memakai
+        Axios untuk mengirim request.
+      </p>
+
+      <h2>1. Konfigurasi Axios</h2>
+      <p>
+        File <code>src/lib/axios.ts</code> membuat object <code>api</code>.
+        Semua service memakai object ini agar base URL, header, cookie, dan error handling
+        konsisten.
+      </p>
+      <pre><code>export const api = axios.create({
+  baseURL: normalizeBaseURL(import.meta.env.VITE_API_URL),
+  headers: {
+    "Content-Type": "application/json",
+  },
+  withCredentials: true,
+});</code></pre>
+
+      <h2>2. Base URL</h2>
+      <p>
+        Fungsi <code>normalizeBaseURL</code> memastikan alamat API selalu berakhir
+        dengan <code>/api/v1</code>. Jadi jika developer mengisi <code>http://localhost:8000</code>,
+        aplikasi akan mengubahnya menjadi <code>http://localhost:8000/api/v1</code>.
+      </p>
+
+      <h2>3. Request Interceptor</h2>
+      <p>
+        Request interceptor menambahkan header Authorization jika access token tersedia.
+        Dengan begitu, service tidak perlu menambahkan token satu per satu.
+      </p>
+      <pre><code>api.interceptors.request.use((config) =&gt; {
+  if (accessToken) {
+    config.headers.Authorization = `Bearer ${accessToken}`;
+  }
+  return config;
+});</code></pre>
+
+      <h2>4. Response Interceptor</h2>
+      <p>
+        Jika backend mengembalikan status <code>401</code>, artinya access token mungkin
+        sudah habis. Aplikasi mencoba memanggil <code>/auth/refresh</code> untuk mendapatkan
+        access token baru.
+      </p>
+      <p>
+        Jika refresh berhasil, request yang gagal tadi dicoba ulang. Jika refresh gagal,
+        user dibersihkan dari aplikasi dan diarahkan ke login.
+      </p>
+
+      <h2>5. Service per Fitur</h2>
+      <p>
+        Folder <code>src/services</code> berisi fungsi untuk setiap area fitur.
+      </p>
+      <table>
+        <thead>
+          <tr>
+            <th>File</th>
+            <th>Contoh Tugas</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr><td><code>auth.service.ts</code></td><td>Login, register, refresh token, logout.</td></tr>
+          <tr><td><code>project.service.ts</code></td><td>Ambil project, buat project, update project, hapus project.</td></tr>
+          <tr><td><code>task.service.ts</code></td><td>Ambil task, buat task, update task, pindah status task.</td></tr>
+          <tr><td><code>team.service.ts</code></td><td>Kelola team dan member.</td></tr>
+          <tr><td><code>user.service.ts</code></td><td>Kelola user oleh admin.</td></tr>
+          <tr><td><code>comment.service.ts</code></td><td>Kelola komentar pada task.</td></tr>
+          <tr><td><code>attachment.service.ts</code></td><td>Kelola file attachment.</td></tr>
+        </tbody>
+      </table>
+
+      <div class="next">
+        <a href="chapter-06-authentication.html">Sebelumnya</a>
+        <a href="chapter-08-state-management.html">Lanjut ke Chapter 08</a>
+      </div>
+    </article>
+  </main>
+</body>
+</html>

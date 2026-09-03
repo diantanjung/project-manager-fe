@@ -1,0 +1,84 @@
+<!doctype html>
+<html lang="id">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Chapter 06 - Authentication</title>
+  <link rel="stylesheet" href="styles.css">
+  <script src="toc.js" defer></script>
+</head>
+<body>
+  <main class="page">
+    <div class="topbar">
+      <a href="index.html">Daftar Chapter</a>
+      <span>Chapter 06</span>
+    </div>
+    <article class="card">
+      <h1>Login, Register, dan Proteksi Halaman</h1>
+      <p>
+        Authentication adalah proses memastikan pengguna sudah masuk ke aplikasi.
+        Jika belum login, pengguna tidak boleh membuka dashboard atau halaman project.
+      </p>
+
+      <h2>1. Halaman Login</h2>
+      <p>
+        File <code>src/pages/Login.tsx</code> menampilkan form email dan password.
+        Saat tombol Sign In ditekan, fungsi <code>authService.login</code> dipanggil.
+      </p>
+      <ol>
+        <li>User mengisi email dan password.</li>
+        <li>Frontend mengirim data ke endpoint <code>/auth/login</code>.</li>
+        <li>Backend mengembalikan user dan access token.</li>
+        <li>Store menyimpan user dan token.</li>
+        <li>User diarahkan ke dashboard atau halaman asal.</li>
+      </ol>
+
+      <h2>2. Auth Store</h2>
+      <p>
+        File <code>src/stores/authStore.ts</code> menyimpan informasi login.
+        User disimpan di <code>localStorage</code>, sedangkan access token disimpan
+        di memory melalui <code>setAccessToken</code>.
+      </p>
+      <div class="note">
+        Access token tidak disimpan di localStorage agar lebih aman. Jika halaman refresh,
+        frontend meminta token baru memakai refresh token dari cookie HttpOnly.
+      </div>
+
+      <h2>3. Protected Route</h2>
+      <p>
+        File <code>src/components/ProtectedRoute.tsx</code> menjaga halaman yang harus login.
+        Kalau user belum login, pengguna diarahkan ke <code>/login</code>.
+      </p>
+      <pre><code>return isAuthenticated ? (
+  &lt;Outlet /&gt;
+) : (
+  &lt;Navigate to="/login" replace /&gt;
+);</code></pre>
+
+      <h2>4. Proteksi Role Admin</h2>
+      <p>
+        Beberapa halaman hanya boleh dibuka oleh admin, yaitu:
+      </p>
+      <ul>
+        <li><code>/admin/users</code></li>
+        <li><code>/admin/teams</code></li>
+      </ul>
+      <p>
+        Jika user bukan admin, aplikasi mengarahkan user kembali ke dashboard.
+      </p>
+
+      <h2>5. Logout</h2>
+      <p>
+        Saat logout, aplikasi memanggil endpoint <code>/auth/logout</code>,
+        menghapus token dari memory, menghapus user dari localStorage,
+        lalu mengarahkan pengguna ke halaman login.
+      </p>
+
+      <div class="next">
+        <a href="chapter-05-routing-layout.html">Sebelumnya</a>
+        <a href="chapter-07-api-service.html">Lanjut ke Chapter 07</a>
+      </div>
+    </article>
+  </main>
+</body>
+</html>

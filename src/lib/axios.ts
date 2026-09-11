@@ -80,6 +80,16 @@ const unwrapResponseEnvelope = <T>(response: AuthResponseEnvelope<T>): T => {
   return response as T;
 };
 
+const isAuthEndpoint = (url?: string) => {
+  if (!url) {
+    return false;
+  }
+
+  return ["/auth/login", "/auth/register", "/auth/refresh"].some((path) =>
+    url.endsWith(path),
+  );
+};
+
 // Request interceptor - attach access token from memory
 api.interceptors.request.use((config) => {
   if (accessToken) {
@@ -112,7 +122,12 @@ api.interceptors.response.use(
   async (error) => {
     const originalRequest = error.config;
 
-    if (error.response?.status === 401 && !originalRequest._retry) {
+    if (
+      error.response?.status === 401 &&
+      originalRequest &&
+      !originalRequest._retry &&
+      !isAuthEndpoint(originalRequest.url)
+    ) {
       if (isRefreshing) {
         return new Promise((resolve, reject) => {
           failedQueue.push({ resolve, reject });

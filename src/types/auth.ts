@@ -30,6 +30,13 @@ export interface LoginResponse {
   expiresIn?: number;
 }
 
+export interface RefreshTokenResponse {
+  accessToken: string;
+  refreshToken?: string;
+  tokenType?: string;
+  expiresIn?: number;
+}
+
 export type RegisterResponse = LoginResponse;
 
 export type AuthResponseEnvelope<T> = T | { data: T };

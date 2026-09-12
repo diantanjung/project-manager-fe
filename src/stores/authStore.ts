@@ -1,6 +1,10 @@
 import { create } from "zustand";
 import type { User } from "../types/auth";
-import { setAccessToken } from "../lib/axios";
+import {
+  clearStoredRefreshToken,
+  setAccessToken,
+  setStoredRefreshToken,
+} from "../lib/axios";
 import { authService } from "../services/auth.service";
 
 interface AuthState {
@@ -9,7 +13,7 @@ interface AuthState {
   isLoading: boolean;
   hasInitialized: boolean;
   initializeAuth: () => Promise<void>;
-  login: (accessToken: string, userData: User) => void;
+  login: (accessToken: string, userData: User, refreshToken?: string) => void;
   updateUser: (userData: User) => void;
   logout: () => void;
   setLoading: (loading: boolean) => void;
@@ -60,6 +64,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
         set({ isAuthenticated: true });
       } catch {
         setAccessToken(null);
+        clearStoredRefreshToken();
         localStorage.removeItem("user");
         set({ user: null, isAuthenticated: false });
       } finally {
@@ -70,9 +75,12 @@ export const useAuthStore = create<AuthState>((set, get) => ({
 
     return initializeAuthPromise;
   },
-  login: (accessToken: string, userData: User) => {
+  login: (accessToken: string, userData: User, refreshToken?: string) => {
     // Store access token in memory (not localStorage - secure from XSS)
     setAccessToken(accessToken);
+    // Prefer HttpOnly refresh-token cookies, but keep a session fallback for
+    // deployments where the API returns the refresh token in the login payload.
+    setStoredRefreshToken(refreshToken);
     // Only persist user data (non-sensitive)
     localStorage.setItem("user", JSON.stringify(userData));
     set({
@@ -89,6 +97,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
   logout: () => {
     // Clear in-memory access token
     setAccessToken(null);
+    clearStoredRefreshToken();
     // Clear persisted user data
     localStorage.removeItem("user");
     set({

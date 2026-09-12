@@ -1,10 +1,17 @@
-import { api, setAccessToken } from "../lib/axios";
+import {
+  api,
+  clearStoredRefreshToken,
+  getStoredRefreshToken,
+  setAccessToken,
+  setStoredRefreshToken,
+} from "../lib/axios";
 import type {
   LoginCredentials,
   RegisterCredentials,
   AuthResponseEnvelope,
   LoginResponse,
   RegisterResponse,
+  RefreshTokenResponse,
 } from "../types/auth";
 
 const unwrapAuthResponse = <T>(response: AuthResponseEnvelope<T>): T => {
@@ -34,19 +41,28 @@ export const authService = {
     return unwrapAuthResponse(data);
   },
 
-  async refreshAccessToken(): Promise<{ accessToken: string }> {
-    // Refresh token is sent automatically via HttpOnly cookie
-    const { data } = await api.post<AuthResponseEnvelope<{ accessToken: string }>>("/auth/refresh", {});
+  async refreshAccessToken(): Promise<RefreshTokenResponse> {
+    // Refresh token is sent automatically via HttpOnly cookie. When the backend
+    // also returns a refresh token in the login payload, use it as a deployment
+    // fallback for browsers that do not send cross-site cookies.
+    const refreshToken = getStoredRefreshToken();
+    const { data } = await api.post<AuthResponseEnvelope<RefreshTokenResponse>>(
+      "/auth/refresh",
+      refreshToken ? { refreshToken } : {},
+    );
     const authData = unwrapAuthResponse(data);
     // Store new access token in memory
     setAccessToken(authData.accessToken);
+    setStoredRefreshToken(authData.refreshToken);
     return authData;
   },
 
   async logout(): Promise<void> {
     // Backend will read refresh token from cookie and clear it
-    await api.post("/auth/logout", {});
+    const refreshToken = getStoredRefreshToken();
+    await api.post("/auth/logout", refreshToken ? { refreshToken } : {});
     // Clear in-memory access token
     setAccessToken(null);
+    clearStoredRefreshToken();
   },
 };

@@ -4,6 +4,7 @@ import type { AuthResponseEnvelope } from "../types/auth";
 
 // In-memory access token storage (secure - not accessible via XSS)
 let accessToken: string | null = null;
+const refreshTokenStorageKey = "refreshToken";
 
 const normalizeBaseURL = (url?: string) => {
   const fallback = "http://localhost:8000";
@@ -19,12 +20,6 @@ const normalizeBaseURL = (url?: string) => {
 
   return `${trimmed}/api/v1`;
 };
-
-export const setAccessToken = (token: string | null) => {
-  accessToken = token;
-};
-
-export const getAccessToken = () => accessToken;
 
 export class ApiError extends Error {
   status?: number;
@@ -45,6 +40,33 @@ export const api = axios.create({
   },
   withCredentials: true, // Send HttpOnly cookies with requests
 });
+
+export const setAccessToken = (token: string | null) => {
+  accessToken = token;
+
+  if (token) {
+    api.defaults.headers.common.Authorization = `Bearer ${token}`;
+  } else {
+    delete api.defaults.headers.common.Authorization;
+  }
+};
+
+export const getAccessToken = () => accessToken;
+
+export const setStoredRefreshToken = (token?: string | null) => {
+  if (token) {
+    sessionStorage.setItem(refreshTokenStorageKey, token);
+  } else {
+    sessionStorage.removeItem(refreshTokenStorageKey);
+  }
+};
+
+export const getStoredRefreshToken = () =>
+  sessionStorage.getItem(refreshTokenStorageKey);
+
+export const clearStoredRefreshToken = () => {
+  sessionStorage.removeItem(refreshTokenStorageKey);
+};
 
 const toApiError = (error: AxiosError<ApiValidationError>) => {
   const status = error.response?.status;
@@ -78,6 +100,11 @@ const unwrapResponseEnvelope = <T>(response: AuthResponseEnvelope<T>): T => {
   }
 
   return response as T;
+};
+
+const buildRefreshRequestBody = () => {
+  const refreshToken = getStoredRefreshToken();
+  return refreshToken ? { refreshToken } : {};
 };
 
 const isAuthEndpoint = (url?: string) => {
@@ -143,29 +170,28 @@ api.interceptors.response.use(
       isRefreshing = true;
 
       try {
-        // Refresh token is sent automatically via HttpOnly cookie
+        // Refresh token is sent automatically via HttpOnly cookie.
+        // Some deployments cannot use cross-site cookies, so fall back to the
+        // refresh token returned by the API when it is available.
         const { data } = await axios.post<AuthResponseEnvelope<{ accessToken: string }>>(
           `${api.defaults.baseURL}/auth/refresh`,
-          {}, // Empty body - refresh token is in cookie
+          buildRefreshRequestBody(),
           { withCredentials: true }
         );
 
         const newAccessToken = unwrapResponseEnvelope(data).accessToken;
 
         // Store new access token in memory
-        accessToken = newAccessToken;
-
-        api.defaults.headers.common[
-          "Authorization"
-        ] = `Bearer ${newAccessToken}`;
+        setAccessToken(newAccessToken);
         processQueue(null, newAccessToken);
 
         originalRequest.headers.Authorization = `Bearer ${newAccessToken}`;
         return api(originalRequest);
       } catch (refreshError) {
         processQueue(refreshError, null);
-        // Clear in-memory token
-        accessToken = null;
+        // Clear in-memory token and refresh-token fallback
+        setAccessToken(null);
+        clearStoredRefreshToken();
         localStorage.removeItem("user");
         window.location.href = "/login";
         return Promise.reject(refreshError);

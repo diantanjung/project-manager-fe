@@ -2,6 +2,12 @@
 
 Project Manager Frontend is a React, TypeScript, and Vite application for managing projects, teams, users, and tasks through a modern web interface. It connects to a REST API backend and provides authenticated workspaces with dashboards, project boards, task details, notifications, comments, and attachment support.
 
+## Live Deployments
+
+- Frontend: [https://taskflowprojectmanager.vercel.app](https://taskflowprojectmanager.vercel.app)
+- Laravel API: [https://project-manager-laravel.onrender.com](https://project-manager-laravel.onrender.com)
+- Node.js API: [https://project-manager-be-3g3k.onrender.com](https://project-manager-be-3g3k.onrender.com)
+
 ## Features
 
 - Authentication pages for login, registration, and protected user sessions.

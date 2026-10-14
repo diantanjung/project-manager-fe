@@ -75,6 +75,16 @@ export function Login() {
             </p>
           </div>
 
+          <div className="mb-6 rounded-xl border border-primary/20 bg-primary/5 px-4 py-3 text-sm">
+            <p className="mb-2 font-semibold text-text-main-light">Demo account</p>
+            <p className="text-text-muted-light">
+              Email: <span className="font-medium text-text-main-light">admin@example.com</span>
+            </p>
+            <p className="text-text-muted-light">
+              Password: <span className="font-medium text-text-main-light">password123</span>
+            </p>
+          </div>
+
           <form className="space-y-5" onSubmit={handleSubmit}>
             {error && (
               <div className="bg-red-50 text-red-500 text-sm p-3 rounded-lg border border-red-100 mb-4">
